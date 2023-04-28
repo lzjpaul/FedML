@@ -232,6 +232,7 @@ def query_data_server(args, edgeId, s3_obj, BUCKET_NAME):
 
 
 def load(args):
+    print ("test fedml in load_synthetic_data")
     return load_synthetic_data(args)
 
 

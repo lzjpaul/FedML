@@ -9,6 +9,7 @@ from fedml.model.cv.mnist_gan import Generator, Discriminator
 from fedml.model.cv.mobilenet import mobilenet
 from fedml.model.cv.mobilenet_v3 import MobileNetV3
 from fedml.model.cv.resnet import resnet56
+from fedml.model.cv.resnet import resnet20
 from fedml.model.cv.resnet56 import resnet_client, resnet_server
 from fedml.model.cv.resnet_gn import resnet18
 from fedml.model.linear.lr import LogisticRegression
@@ -17,6 +18,7 @@ from fedml.model.nlp.rnn import RNN_OriginalFedAvg, RNN_StackOverFlow, RNN_FedSh
 
 
 def create(args, output_dim):
+    print ("test fedml in create model")
     global model
     model_name = args.model
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
@@ -57,6 +59,9 @@ def create(args, output_dim):
             model = (client_model, server_model)
         else:
             model = resnet56(class_num=output_dim)
+    elif model_name == "resnet20":
+        print ("test fedml, in model_hub resnet20, output_dim: \n", output_dim)
+        model = resnet20(class_num=output_dim)
     elif model_name == "mobilenet":
         model = mobilenet(class_num=output_dim)
     elif model_name == "mobilenet_v3":

@@ -50,6 +50,7 @@ class FedMLServerManager(FedMLCommManager):
                 global_model_url, global_model_key
             )
             client_idx_in_this_round += 1
+        print ("test fedml send_init_msg client_idx_in_this_round: \n", client_idx_in_this_round)
 
         mlops.event("server.wait", event_started=True, event_value=str(self.args.round_idx))
 
@@ -99,6 +100,7 @@ class FedMLServerManager(FedMLCommManager):
 
             # check client status in case that some clients start earlier than the server
             client_idx_in_this_round = 0
+            print ("test fedml handle_message_connection_ready self.client_id_list_in_this_round: \n", self.client_id_list_in_this_round)
             for client_id in self.client_id_list_in_this_round:
                 try:
                     self.send_message_check_client_status(
@@ -108,6 +110,7 @@ class FedMLServerManager(FedMLCommManager):
                 except Exception as e:
                     logging.info("Connection not ready for client" + str(client_id))
                 client_idx_in_this_round += 1
+            print ("test fedml handle_message_connection_ready client_idx_in_this_round: \n", client_idx_in_this_round)
 
     def process_online_status(self, client_status, msg_params):
         self.client_online_mapping[str(msg_params.get_sender_id())] = True
@@ -177,6 +180,7 @@ class FedMLServerManager(FedMLCommManager):
 
             logging.info("self.client_id_list_in_this_round = {}".format(self.client_id_list_in_this_round))
             new_client_id_list_in_this_round = []
+            print ("test fedml handle_message_receive_model_from_client model_list_idxes: \n", model_list_idxes)
             for client_idx in model_list_idxes:
                 new_client_id_list_in_this_round.append(self.client_id_list_in_this_round[client_idx])
             logging.info("new_client_id_list_in_this_round = {}".format(new_client_id_list_in_this_round))
@@ -207,6 +211,9 @@ class FedMLServerManager(FedMLCommManager):
             client_idx_in_this_round = 0
             global_model_url = None
             global_model_key = None
+            print ("test fedml handle_message_receive_model_from_client self.client_id_list_in_this_round: \n", self.client_id_list_in_this_round)
+            print ("test fedml handle_message_receive_model_from_client self.data_silo_index_list: \n", self.data_silo_index_list)
+            # print ("test fedml handle_message_receive_model_from_client global_model_params: \n", global_model_params)
             for receiver_id in self.client_id_list_in_this_round:
                 client_index = self.data_silo_index_list[client_idx_in_this_round]
                 if type(global_model_params) is dict:
@@ -218,7 +225,10 @@ class FedMLServerManager(FedMLCommManager):
                     global_model_url, global_model_key = self.send_message_sync_model_to_client(
                         receiver_id, global_model_params, client_index, global_model_url, global_model_key
                     )
+                print ("test fedml handle_message_receive_model_from_client global_model_url: \n", global_model_url)
+                print ("test fedml handle_message_receive_model_from_client global_model_key: \n", global_model_key)
                 client_idx_in_this_round += 1
+            print ("test fedml handle_message_receive_model_from_client client_idx_in_this_round: \n", client_idx_in_this_round)
 
             # if user give {-1 : global_parms_dict}, then record global_model url separately
             if type(global_model_params) is dict and (-1 in global_model_params.keys()):
