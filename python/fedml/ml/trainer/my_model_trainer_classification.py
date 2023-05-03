@@ -13,6 +13,7 @@ import logging
 
 class ModelTrainerCLS(ClientTrainer):
     def get_model_params(self):
+        print ("test fedml get_model_params")
         return self.model.cpu().state_dict()
 
     def set_model_params(self, model_parameters):
@@ -22,6 +23,7 @@ class ModelTrainerCLS(ClientTrainer):
         model = self.model
 
         model.to(device)
+        print ("test fedml model.train()")
         model.train()
 
         # train and update

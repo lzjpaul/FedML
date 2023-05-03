@@ -167,6 +167,7 @@ class FedMLServerManager(FedMLCommManager):
         model_params = msg_params.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS)
         local_sample_number = msg_params.get(MyMessage.MSG_ARG_KEY_NUM_SAMPLES)
 
+        print ("test fedml -- before add_local_trained_result, in or not??")
         self.aggregator.add_local_trained_result(
             self.client_real_ids.index(sender_id), model_params, local_sample_number
         )
@@ -176,6 +177,7 @@ class FedMLServerManager(FedMLCommManager):
             mlops.event("server.wait", event_started=False, event_value=str(self.args.round_idx))
             mlops.event("server.agg_and_eval", event_started=True, event_value=str(self.args.round_idx))
             tick = time.time()
+            print ("test fedml fedml_server_manager.py handle_message_receive_model_from_client self.aggregator.aggregate()")
             global_model_params, model_list, model_list_idxes = self.aggregator.aggregate()
 
             logging.info("self.client_id_list_in_this_round = {}".format(self.client_id_list_in_this_round))
@@ -295,6 +297,13 @@ class FedMLServerManager(FedMLCommManager):
             message.add_params(MyMessage.MSG_ARG_KEY_MODEL_PARAMS_KEY, global_model_key)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_OS, "PythonClient")
+        print ("test sync model message.get_type(): \n", message.get_type())
+        print ("test sync model message.to_string(): \n", message.to_string())
+        try:
+            print ("test sync model message.to_json(): \n", message.to_json())
+        except:
+            print ("test sync model Object of type Tensor is not JSON serializable")
+        # print ("test sync model message.get_type(): \n", message.get_type())
         self.send_message(message)
 
         MLOpsProfilerEvent.log_to_wandb({"Communiaction/Send_Total": time.time() - tick})

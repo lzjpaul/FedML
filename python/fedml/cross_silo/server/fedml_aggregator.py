@@ -56,6 +56,8 @@ class FedMLAggregator(object):
 
     def add_local_trained_result(self, index, model_params, sample_num):
         logging.info("add_model. index = %d" % index)
+        print ("test model_params: \n", model_params)
+        print ("test sample_num: \n", sample_num)
 
         # for dictionary model_params, we let the user level code to control the device
         if type(model_params) is not dict:
@@ -75,6 +77,7 @@ class FedMLAggregator(object):
         return True
 
     def aggregate(self):
+        print ("test fedml fedml_aggregator.py FedMLAggregator class aggregate() function return three variables: averaged_params, model_list, model_list_idxes")
         start_time = time.time()
 
         model_list = []

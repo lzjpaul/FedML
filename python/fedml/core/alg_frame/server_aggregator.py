@@ -62,13 +62,16 @@ class ServerAggregator(ABC):
         return raw_client_model_or_grad_list, client_idxs
 
     def aggregate(self, raw_client_model_or_grad_list: List[Tuple[float, OrderedDict]]):
+        print ("test fedml server_aggragator.py call FedMLAggOperator.agg --> torch aggragator")
         if FedMLDefender.get_instance().is_defense_enabled():
+            print ("test fedml aggregation is_defense_enabled")
             return FedMLDefender.get_instance().defend_on_aggregation(
                 raw_client_grad_list=raw_client_model_or_grad_list,
                 base_aggregation_func=FedMLAggOperator.agg,
                 extra_auxiliary_info=self.get_model_params(),
             )
         if FedMLDifferentialPrivacy.get_instance().to_compute_params_in_aggregation_enabled():
+            print ("test fedml aggregation to_compute_params_in_aggregation_enabled")
             FedMLDifferentialPrivacy.get_instance().set_params_for_dp(raw_client_model_or_grad_list)
         return FedMLAggOperator.agg(self.args, raw_client_model_or_grad_list)
 

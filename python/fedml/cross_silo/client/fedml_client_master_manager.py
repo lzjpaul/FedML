@@ -166,6 +166,8 @@ class ClientMasterManager(FedMLCommManager):
 
         weights, local_sample_num = self.trainer_dist_adapter.train(self.round_idx)
 
+        # logging.info("debug fedml client train round number %d " % round_number[0])
+
         mlops.event("train", event_started=False, event_value=str(self.round_idx))
 
         # the current model is still DDP-wrapped under cross-silo-hi setting

@@ -74,6 +74,7 @@ class TrainerDistAdapter:
         )
 
     def train(self, round_idx):
+        print ("test fedml fedml_trainer_dist_adapter.py call self.trainer.train")
         weights, local_sample_num = self.trainer.train(round_idx)
         return weights, local_sample_num
 

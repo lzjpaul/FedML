@@ -34,6 +34,7 @@ def torch_aggregator(args, raw_grad_list, training_num):
 
     if args.federated_optimizer == "FedAvg":
         (num0, avg_params) = raw_grad_list[0]
+        print ("test fedml torch aggregator debug end point")
         for k in avg_params.keys():
             for i in range(0, len(raw_grad_list)):
                 local_sample_number, local_model_params = raw_grad_list[i]

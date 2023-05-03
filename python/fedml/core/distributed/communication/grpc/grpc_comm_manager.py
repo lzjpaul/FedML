@@ -78,6 +78,12 @@ class GRPCCommManager(BaseCommunicationManager):
     def send_message(self, msg: Message):
         logging.info("msg = {}".format(msg))
         # payload = msg.to_json()
+        print ("test msg.get_type(): \n", msg.get_type())
+        print ("test msg.to_string(): \n", msg.to_string())
+        try:
+            print ("test msg.to_json(): \n", msg.to_json())
+        except:
+            print ("Object of type Tensor is not JSON serializable")
 
         logging.info("pickle.dumps(msg) START")
         pickle_dump_start_time = time.time()
