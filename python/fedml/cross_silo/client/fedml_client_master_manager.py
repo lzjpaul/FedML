@@ -34,6 +34,7 @@ class ClientMasterManager(FedMLCommManager):
         self.has_sent_online_msg = False
         self.is_inited = False
 
+
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(
             MyMessage.MSG_TYPE_CONNECTION_IS_READY, self.handle_message_connection_ready
@@ -164,7 +165,11 @@ class ClientMasterManager(FedMLCommManager):
 
         mlops.event("train", event_started=True, event_value=str(self.round_idx))
 
-        weights, local_sample_num = self.trainer_dist_adapter.train(self.round_idx)
+        ### client 4-1: judge zkp, if yes, grads, local_sample_num = self.trainer_dist_adapter.train(self.round_idx)
+        if self.args.privacy_optimizer == 'zkp':
+            grads, local_sample_num = self.trainer_dist_adapter.train(self.round_idx)
+        else:
+            weights, local_sample_num = self.trainer_dist_adapter.train(self.round_idx)
 
         # logging.info("debug fedml client train round number %d " % round_number[0])
 
@@ -174,7 +179,11 @@ class ClientMasterManager(FedMLCommManager):
         if self.args.scenario == FEDML_CROSS_SILO_SCENARIO_HIERARCHICAL:
             weights = convert_model_params_from_ddp(weights)
 
-        self.send_model_to_server(0, weights, local_sample_num)
+        ### client 4-2: judge zkp, if yes, self.send_model_to_server(0, grads, local_sample_num)
+        if self.args.privacy_optimizer == 'zkp':
+            self.send_model_to_server(0, grads, local_sample_num)
+        else:
+            self.send_model_to_server(0, weights, local_sample_num)
 
     def run(self):
         super().run()

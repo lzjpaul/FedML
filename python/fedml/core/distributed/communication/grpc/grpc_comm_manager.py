@@ -79,7 +79,7 @@ class GRPCCommManager(BaseCommunicationManager):
         logging.info("msg = {}".format(msg))
         # payload = msg.to_json()
         print ("test msg.get_type(): \n", msg.get_type())
-        print ("test msg.to_string(): \n", msg.to_string())
+        # print ("comment-5-16 test msg.to_string(): \n", msg.to_string())
         try:
             print ("test msg.to_json(): \n", msg.to_json())
         except:

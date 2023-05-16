@@ -8,7 +8,9 @@ from ..dp.fedml_differential_privacy import FedMLDifferentialPrivacy
 from ..security.fedml_attacker import FedMLAttacker
 from ..security.fedml_defender import FedMLDefender
 from ...ml.aggregator.agg_operator import FedMLAggOperator
-
+import fedml
+import torch
+from torch import nn
 
 class ServerAggregator(ABC):
     """Abstract base class for federated learning trainer."""
@@ -24,6 +26,22 @@ class ServerAggregator(ABC):
         self.final_contribution_assigment_dict = dict()
 
         self.eval_data = None
+
+        #### criterion and optimizer
+        self.device = fedml.device.get_device(args)
+        self.criterion = nn.CrossEntropyLoss().to(self.device)  # pylint: disable=E1102
+        if args.client_optimizer == "sgd":
+            self.optimizer = torch.optim.SGD(
+                filter(lambda p: p.requires_grad, self.model.parameters()),
+                lr=args.learning_rate,
+            )
+        else:
+            self.optimizer = torch.optim.Adam(
+                filter(lambda p: p.requires_grad, self.model.parameters()),
+                lr=args.learning_rate,
+                weight_decay=args.weight_decay,
+                amsgrad=True,
+            )
 
     def set_id(self, aggregator_id):
         self.id = aggregator_id
@@ -73,7 +91,48 @@ class ServerAggregator(ABC):
         if FedMLDifferentialPrivacy.get_instance().to_compute_params_in_aggregation_enabled():
             print ("test fedml aggregation to_compute_params_in_aggregation_enabled")
             FedMLDifferentialPrivacy.get_instance().set_params_for_dp(raw_client_model_or_grad_list)
-        return FedMLAggOperator.agg(self.args, raw_client_model_or_grad_list)
+        ### server 1: self.zkp + self.model=model + optimizer.step() --> returned avg_params!!!
+        ### server 1-2: copy the model_aggregator and torch aggregator, etc functions .. --> refer to agg_operator.py: line 26 - 45
+        ### local_sample_num, local_model_params = raw_grad_list[i]
+        ### each i is a party: (num0, avg_params) = raw_grad_list[0]
+        if self.args.privacy_optimizer == 'zkp':
+            training_num = 0
+            for i in range(len(raw_client_model_or_grad_list)):
+                local_sample_num, local_model_grads = raw_client_model_or_grad_list[i]  # each i is a party
+                training_num += local_sample_num
+            (num0, avg_grads) = raw_client_model_or_grad_list[0]
+            for k in avg_grads.keys():
+                for i in range(0, len(raw_client_model_or_grad_list)):
+                    local_sample_number, local_model_grads = raw_client_model_or_grad_list[i]
+                    w = local_sample_number / training_num
+                    if i == 0:
+                        avg_grads[k] = local_model_grads[k] * w
+                    else:
+                        avg_grads[k] += local_model_grads[k] * w
+            ### fedml_aggregator.py get_dummy_input()
+            if self.args.dataset == 'cifar10':
+                dummy_input, dummy_label = torch.ones((1, 3, 32, 32)).to(self.device), torch.ones(1).to(self.device)
+            else:
+                pass
+            # https://github.com/FedML-AI/FedML/blob/master/python/fedml/ml/trainer/my_model_trainer_classification.py
+            # https://github.com/lzjpaul/pytorch/blob/residual-knowledge-driven/examples/residual-knowledge-driven-example-aaai-L2/train_lstm_main_hook_resreg_real_wlm_wd00001.py
+            self.model.train()
+            self.model.zero_grad()
+            log_probs = self.model(dummy_input)
+            dummy_label = dummy_label.long()
+            loss = self.criterion(log_probs, dummy_label)  # pylint: disable=E1102
+            loss.backward()
+            for param_name, f in self.model.named_parameters():
+                # f.grad.data.add_(float(weightdecay), f.data)
+                print ('param name: ', param_name)
+                print ('param size:', f.data.size())
+                # print ('param: ', f)
+                print ('param grad size: ', f.grad.data.size())
+                f.grad.data = avg_grads[param_name].to(self.device)
+            self.optimizer.step()
+            return self.model.cpu().state_dict()
+        else:
+            return FedMLAggOperator.agg(self.args, raw_client_model_or_grad_list)  # return averaged_params
 
     def on_after_aggregation(self, aggregated_model_or_grad: OrderedDict) -> OrderedDict:
         if FedMLDifferentialPrivacy.get_instance().is_global_dp_enabled():

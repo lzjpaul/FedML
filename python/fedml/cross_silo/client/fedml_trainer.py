@@ -73,9 +73,16 @@ class FedMLTrainer(object):
         self.trainer.on_after_local_training(self.train_local, self.device, self.args)
 
         MLOpsProfilerEvent.log_to_wandb({"Train/Time": time.time() - tick, "round": round_idx})
-        weights = self.trainer.get_model_params()
+        ### client 2: grads = self.trainer.get_model_grads()
+        if self.args.privacy_optimizer == 'zkp':
+            grads = self.trainer.get_model_grads()
+        else:
+            weights = self.trainer.get_model_params()
         # transform Tensor to list
-        return weights, self.local_sample_number
+        if self.args.privacy_optimizer == 'zkp':
+            return grads, self.local_sample_number
+        else:
+            return weights, self.local_sample_number
 
     def test(self):
         # train data

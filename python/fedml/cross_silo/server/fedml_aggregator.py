@@ -56,7 +56,7 @@ class FedMLAggregator(object):
 
     def add_local_trained_result(self, index, model_params, sample_num):
         logging.info("add_model. index = %d" % index)
-        print ("test model_params: \n", model_params)
+        # print ("comment-5-16 test model_params: \n", model_params)
         print ("test sample_num: \n", sample_num)
 
         # for dictionary model_params, we let the user level code to control the device
@@ -84,11 +84,22 @@ class FedMLAggregator(object):
         for idx in range(self.client_num):
             model_list.append((self.sample_num_dict[idx], self.model_dict[idx]))
         # model_list is the list after outlier removal
+        # server 2-1: what is this on_before_aggregation(model_list)?
         model_list, model_list_idxes = self.aggregator.on_before_aggregation(model_list)
         Context().add(Context.KEY_CLIENT_MODEL_LIST, model_list)
 
+        # server 2-2: call the aggragate
+        dummy_features = self.get_dummy_input_tensor()
+        dummy_input_shape, dummy_input_type = self.get_input_shape_type()
+        print ("fedml_aggragator.py dummy_features: ", dummy_features)
+        print ("fedml_aggragator.py len(dummy_features): ", len(dummy_features))
+        print ("fedml_aggragator.py dummy_features[0]: ", dummy_features[0])
+        print ("fedml_aggragator.py dummy_features[0] size: ", dummy_features[0].size())
+        print ("fedml_aggragator.py dummy_input_shape: ", dummy_input_shape)
+        print ("fedml_aggragator.py dummy_input_type: ", dummy_input_type)
         averaged_params = self.aggregator.aggregate(model_list)
 
+        # server 2-3: what is this on_after_aggregation?
         if type(averaged_params) is dict:
             if len(averaged_params) == self.client_num + 1: # aggregator pass extra {-1 : global_parms_dict}  as global_params
                 itr_count = len(averaged_params) - 1        # do not apply on_after_aggregation to client -1
@@ -100,6 +111,7 @@ class FedMLAggregator(object):
         else:
             averaged_params = self.aggregator.on_after_aggregation(averaged_params)
 
+        # server 2-4: what is this set_global_model_params?
         self.set_global_model_params(averaged_params)
 
         end_time = time.time()

@@ -178,6 +178,7 @@ class FedMLServerManager(FedMLCommManager):
             mlops.event("server.agg_and_eval", event_started=True, event_value=str(self.args.round_idx))
             tick = time.time()
             print ("test fedml fedml_server_manager.py handle_message_receive_model_from_client self.aggregator.aggregate()")
+            # server 3-1: aggregator
             global_model_params, model_list, model_list_idxes = self.aggregator.aggregate()
 
             logging.info("self.client_id_list_in_this_round = {}".format(self.client_id_list_in_this_round))
@@ -190,6 +191,7 @@ class FedMLServerManager(FedMLCommManager):
 
             MLOpsProfilerEvent.log_to_wandb({"AggregationTime": time.time() - tick, "round": self.args.round_idx})
 
+            # server 3-2: what is this test_on_server_for_all_clients for?
             self.aggregator.test_on_server_for_all_clients(self.args.round_idx)
 
             self.aggregator.assess_contribution()
@@ -216,6 +218,7 @@ class FedMLServerManager(FedMLCommManager):
             print ("test fedml handle_message_receive_model_from_client self.client_id_list_in_this_round: \n", self.client_id_list_in_this_round)
             print ("test fedml handle_message_receive_model_from_client self.data_silo_index_list: \n", self.data_silo_index_list)
             # print ("test fedml handle_message_receive_model_from_client global_model_params: \n", global_model_params)
+            ## server 3-3: send_message_sync_model_to_client
             for receiver_id in self.client_id_list_in_this_round:
                 client_index = self.data_silo_index_list[client_idx_in_this_round]
                 if type(global_model_params) is dict:
@@ -298,12 +301,12 @@ class FedMLServerManager(FedMLCommManager):
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_OS, "PythonClient")
         print ("test sync model message.get_type(): \n", message.get_type())
-        print ("test sync model message.to_string(): \n", message.to_string())
-        try:
-            print ("test sync model message.to_json(): \n", message.to_json())
-        except:
-            print ("test sync model Object of type Tensor is not JSON serializable")
-        # print ("test sync model message.get_type(): \n", message.get_type())
+        # print ("comment-5-16 test sync model message.to_string(): \n", message.to_string())
+        # try:
+        #     print ("comment-5-16 test sync model message.to_json(): \n", message.to_json())
+        # except:
+        #     print ("comment-5-16 test sync model Object of type Tensor is not JSON serializable")
+        # print ("comment-5-16 test sync model message.get_type(): \n", message.get_type())
         self.send_message(message)
 
         MLOpsProfilerEvent.log_to_wandb({"Communiaction/Send_Total": time.time() - tick})

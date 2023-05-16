@@ -75,8 +75,13 @@ class TrainerDistAdapter:
 
     def train(self, round_idx):
         print ("test fedml fedml_trainer_dist_adapter.py call self.trainer.train")
-        weights, local_sample_num = self.trainer.train(round_idx)
-        return weights, local_sample_num
+        ### client 3: judge zkp and then grads, local_sample_num = self.trainer.train(round_idx)
+        if self.args.privacy_optimizer == 'zkp':
+            grads, local_sample_num = self.trainer.train(round_idx)
+            return grads, local_sample_num
+        else:
+            weights, local_sample_num = self.trainer.train(round_idx)
+            return weights, local_sample_num
 
     def update_model(self, model_params):
         self.trainer.update_model(model_params)

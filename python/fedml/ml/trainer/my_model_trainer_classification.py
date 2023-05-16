@@ -16,6 +16,13 @@ class ModelTrainerCLS(ClientTrainer):
         print ("test fedml get_model_params")
         return self.model.cpu().state_dict()
 
+    ### client 1: def get_model_grads(self)
+    def get_model_grads(self):
+        model_grads_dict = {}
+        for param_name, f in self.model.named_parameters():
+            model_grads_dict[param_name] = f.grad.data.cpu()
+        return model_grads_dict
+
     def set_model_params(self, model_parameters):
         self.model.load_state_dict(model_parameters)
 
@@ -42,6 +49,7 @@ class ModelTrainerCLS(ClientTrainer):
             )
 
         epoch_loss = []
+        ### client 0: I only need one step?? not one epoch!!!
         for epoch in range(args.epochs):
             batch_loss = []
 
