@@ -3,6 +3,7 @@ from .runner import FedMLRunner
 
 from .constants import FEDML_TRAINING_PLATFORM_CROSS_SILO
 
+import numpy as np
 
 def run_cross_silo_server():
     """FedML Octopus"""
@@ -20,6 +21,13 @@ def run_cross_silo_server():
     # load model
     model = fedml.model.create(args, output_dim)
 
+    # print ("server model: ", model)
+    print ("server model param address")
+    print(list(map(id,model.parameters())))
+    for param_name, f in model.named_parameters():
+        if 'weight' in param_name and 'conv' in param_name:
+            print ('server param name: ', param_name)
+            print ('server param norm: ', np.linalg.norm(f.data.cpu().numpy()))
     # start training
     fedml_runner = FedMLRunner(args, device, dataset, model)
     fedml_runner.run()
@@ -42,6 +50,13 @@ def run_cross_silo_client():
     # load model
     model = fedml.model.create(args, output_dim)
 
+    # print ("client model: ", model)
+    print ("client model param address")
+    print(list(map(id,model.parameters())))
+    for param_name, f in model.named_parameters():
+        if 'weight' in param_name and 'conv' in param_name:
+            print ('client param name: ', param_name)
+            print ('client param norm: ', np.linalg.norm(f.data.cpu().numpy()))
     # start training
     fedml_runner = FedMLRunner(args, device, dataset, model)
     fedml_runner.run()

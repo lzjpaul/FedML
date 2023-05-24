@@ -6,7 +6,7 @@ from ...core.dp.fedml_differential_privacy import FedMLDifferentialPrivacy
 import logging
 import copy
 import logging
-
+import numpy as np
 
 # from functorch import grad_and_value, make_functional, vmap
 
@@ -49,12 +49,19 @@ class ModelTrainerCLS(ClientTrainer):
             )
 
         epoch_loss = []
+        ### client -1: print model before updating
+        print ("before client train epochs")
+        for param_name, f in self.model.named_parameters():
+            if 'weight' in param_name and 'conv' in param_name:
+                print ('param name: ', param_name)
+                print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
         ### client 0: I only need one step?? not one epoch!!!
         for epoch in range(args.epochs):
             batch_loss = []
 
             for batch_idx, (x, labels) in enumerate(train_data):
                 x, labels = x.to(device), labels.to(device)
+                # print ("labels: ", labels)
                 model.zero_grad()
                 log_probs = model(x)
                 labels = labels.long()

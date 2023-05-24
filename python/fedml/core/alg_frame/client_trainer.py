@@ -38,6 +38,7 @@ class ClientTrainer(ABC):
         pass
 
     def on_before_local_training(self, train_data, device, args):
+        print ("23-5-23 test print on_before_local_training actually executing pass only")
         pass
 
     @abstractmethod
@@ -45,7 +46,9 @@ class ClientTrainer(ABC):
         pass
 
     def on_after_local_training(self, train_data, device, args):
+        print ("23-5-23 test print on_after_local_training")
         if FedMLDifferentialPrivacy.get_instance().is_local_dp_enabled():
+            print ("23-5-23 test print on_after_local_training actually dp_enabled()")
             logging.info("-----add local DP noise ----")
             model_params_with_dp_noise = FedMLDifferentialPrivacy.get_instance().add_local_noise(self.get_model_params())
             self.set_model_params(model_params_with_dp_noise)

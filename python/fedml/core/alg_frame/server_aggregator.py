@@ -11,6 +11,7 @@ from ...ml.aggregator.agg_operator import FedMLAggOperator
 import fedml
 import torch
 from torch import nn
+import numpy as np
 
 class ServerAggregator(ABC):
     """Abstract base class for federated learning trainer."""
@@ -57,20 +58,25 @@ class ServerAggregator(ABC):
     def on_before_aggregation(
             self, raw_client_model_or_grad_list: List[Tuple[float, OrderedDict]]
     ):
+        print ("23-5-23 test print enter on_before_aggregation")
         if FedMLDifferentialPrivacy.get_instance().is_global_dp_enabled() and FedMLDifferentialPrivacy.get_instance().is_clipping():
+            print ("23-5-23 test print on_before_aggregation FedMLDifferentialPrivacy")
             raw_client_model_or_grad_list = FedMLDifferentialPrivacy.get_instance().global_clip(raw_client_model_or_grad_list)
         if FedMLAttacker.get_instance().is_reconstruct_data_attack():
+            print ("23-5-23 test print on_before_aggregation reconstruct_data_attack")
             FedMLAttacker.get_instance().reconstruct_data(
                 raw_client_grad_list=raw_client_model_or_grad_list,
                 extra_auxiliary_info=self.get_model_params(),
             )
         if FedMLAttacker.get_instance().is_model_attack():
+            print ("23-5-23 test print on_before_aggregation is model attack")
             raw_client_model_or_grad_list = FedMLAttacker.get_instance().attack_model(
                 raw_client_grad_list=raw_client_model_or_grad_list,
                 extra_auxiliary_info=self.get_model_params(),
             )
         client_idxs = [i for i in range(len(raw_client_model_or_grad_list))]
         if FedMLDefender.get_instance().is_defense_enabled():
+            print ("23-5-23 test print on_before_aggregation is_defense_enabled")
             raw_client_model_or_grad_list = FedMLDefender.get_instance().defend_before_aggregation(
                 raw_client_grad_list=raw_client_model_or_grad_list,
                 extra_auxiliary_info=self.get_model_params(),
@@ -80,16 +86,16 @@ class ServerAggregator(ABC):
         return raw_client_model_or_grad_list, client_idxs
 
     def aggregate(self, raw_client_model_or_grad_list: List[Tuple[float, OrderedDict]]):
-        print ("test fedml server_aggragator.py call FedMLAggOperator.agg --> torch aggragator")
+        print ("23-5-23 test print enter aggregate test fedml server_aggragator.py call FedMLAggOperator.agg --> torch aggragator")
         if FedMLDefender.get_instance().is_defense_enabled():
-            print ("test fedml aggregation is_defense_enabled")
+            print ("23-5-23 test print fedml aggregation is_defense_enabled")
             return FedMLDefender.get_instance().defend_on_aggregation(
                 raw_client_grad_list=raw_client_model_or_grad_list,
                 base_aggregation_func=FedMLAggOperator.agg,
                 extra_auxiliary_info=self.get_model_params(),
             )
         if FedMLDifferentialPrivacy.get_instance().to_compute_params_in_aggregation_enabled():
-            print ("test fedml aggregation to_compute_params_in_aggregation_enabled")
+            print ("23-5-23 test print fedml aggregation to_compute_params_in_aggregation_enabled")
             FedMLDifferentialPrivacy.get_instance().set_params_for_dp(raw_client_model_or_grad_list)
         ### server 1: self.zkp + self.model=model + optimizer.step() --> returned avg_params!!!
         ### server 1-2: copy the model_aggregator and torch aggregator, etc functions .. --> refer to agg_operator.py: line 26 - 45
@@ -124,30 +130,47 @@ class ServerAggregator(ABC):
             loss.backward()
             for param_name, f in self.model.named_parameters():
                 # f.grad.data.add_(float(weightdecay), f.data)
-                print ('param name: ', param_name)
-                print ('param size:', f.data.size())
-                # print ('param: ', f)
-                print ('param grad size: ', f.grad.data.size())
+                if 'weight' in param_name and 'conv' in param_name:
+                    print ('before optimizer step')
+                    print ('param name: ', param_name)
+                    print ('param size:', f.data.size())
+                    # print ('param: ', f)
+                    print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
+                    print ('param grad size: ', f.grad.data.size())
                 f.grad.data = avg_grads[param_name].to(self.device)
             self.optimizer.step()
+            for param_name, f in self.model.named_parameters():
+                # f.grad.data.add_(float(weightdecay), f.data)
+                if 'weight' in param_name and 'conv' in param_name:
+                    print ('after optimizer step')
+                    print ('param name: ', param_name)
+                    print ('param size:', f.data.size())
+                    # print ('param: ', f)
+                    print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
+                    print ('param grad size: ', f.grad.data.size())
             return self.model.cpu().state_dict()
         else:
             return FedMLAggOperator.agg(self.args, raw_client_model_or_grad_list)  # return averaged_params
 
     def on_after_aggregation(self, aggregated_model_or_grad: OrderedDict) -> OrderedDict:
+        print ("23-5-23 test print enter on_after_aggregation")
         if FedMLDifferentialPrivacy.get_instance().is_global_dp_enabled():
             logging.info("-----add central DP noise ----")
+            print ("23-5-23 test print on_after_aggregation is_global_dp_enabled")
             aggregated_model_or_grad = FedMLDifferentialPrivacy.get_instance().add_global_noise(
                 aggregated_model_or_grad
             )
         if FedMLDefender.get_instance().is_defense_enabled():
+            print ("23-5-23 test print on_after_aggragation is_defense-enabled")
             aggregated_model_or_grad = FedMLDefender.get_instance().defend_after_aggregation(aggregated_model_or_grad)
         return aggregated_model_or_grad
 
     def assess_contribution(self):
         if self.contribution_assessor_mgr is None:
+            print ("23-5-23 test print assess_contribution contribution_assessor_mgr is none")
             return
         # TODO: start to run contribution assessment in an independent python process
+        print ("23-5-23 test print assess_contribution contribution_assessor_mgr is not none")
         client_num_per_round = len(Context().get(Context.KEY_CLIENT_ID_LIST_IN_THIS_ROUND))
         client_index_for_this_round = Context().get(Context.KEY_CLIENT_ID_LIST_IN_THIS_ROUND)
         local_weights_from_clients = Context().get(Context.KEY_CLIENT_MODEL_LIST)
@@ -171,6 +194,7 @@ class ServerAggregator(ABC):
         )
 
         if self.args.round_idx == self.args.comm_round - 1:
+            print ("23-5-23 test print assess_contribution self.contribution_assessor_mgr.get_final_contribution_assignment()")
             self.final_contribution_assigment_dict = self.contribution_assessor_mgr.get_final_contribution_assignment()
             logging.info(
                 "self.final_contribution_assigment_dict = {}".format(self.final_contribution_assigment_dict))

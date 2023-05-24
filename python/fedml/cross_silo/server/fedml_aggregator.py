@@ -56,6 +56,7 @@ class FedMLAggregator(object):
 
     def add_local_trained_result(self, index, model_params, sample_num):
         logging.info("add_model. index = %d" % index)
+        print ("23-5-23 test print add_model index: ", index)
         # print ("comment-5-16 test model_params: \n", model_params)
         print ("test sample_num: \n", sample_num)
 

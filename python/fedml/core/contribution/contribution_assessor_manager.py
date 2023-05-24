@@ -12,7 +12,9 @@ class ContributionAssessorManager:
         self.assessor = self._build_assessor()
 
     def _build_assessor(self):
+        print ("23-5-23 test print enter _build_assessor")
         if not hasattr(self.args, "contribution_alg"):
+            print ("23-5-23 test print no _build_assessor")
             logging.info("contribution_alg is not set, assessor is None")
             return None
         if self.args.contribution_alg == "LOO":
