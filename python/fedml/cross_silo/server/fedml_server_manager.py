@@ -217,16 +217,21 @@ class FedMLServerManager(FedMLCommManager):
             global_model_key = None
             print ("test fedml handle_message_receive_model_from_client self.client_id_list_in_this_round: \n", self.client_id_list_in_this_round)
             print ("test fedml handle_message_receive_model_from_client self.data_silo_index_list: \n", self.data_silo_index_list)
+            print ("23-5-23 test print handle_message_receive_model_from_client global_model_params type: ", type(global_model_params))
             # print ("test fedml handle_message_receive_model_from_client global_model_params: \n", global_model_params)
             ## server 3-3: send_message_sync_model_to_client
             for receiver_id in self.client_id_list_in_this_round:
                 client_index = self.data_silo_index_list[client_idx_in_this_round]
                 if type(global_model_params) is dict:
+                    print ("23-5-23 test print handle_message_receive_model_from_client send_diff_sync")
                     # compatible with the old version that, user did not give {-1 : global_parms_dict}
                     global_model_url, global_model_key = self.send_message_diff_sync_model_to_client(
                         receiver_id, global_model_params[client_index], client_index
                     )
                 else:
+                    print ("23-5-23 test print handle_message_receive_model_from_client before send_sync model")
+                    print ("23-5-23 test print handle_message_receive_model_from_client global_model_url: \n", global_model_url)
+                    print ("23-5-23 test print handle_message_receive_model_from_client global_model_key: \n", global_model_key) 
                     global_model_url, global_model_key = self.send_message_sync_model_to_client(
                         receiver_id, global_model_params, client_index, global_model_url, global_model_key
                     )

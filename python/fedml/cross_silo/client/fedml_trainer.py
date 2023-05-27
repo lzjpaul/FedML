@@ -75,7 +75,11 @@ class FedMLTrainer(object):
         MLOpsProfilerEvent.log_to_wandb({"Train/Time": time.time() - tick, "round": round_idx})
         ### client 2: grads = self.trainer.get_model_grads()
         if self.args.privacy_optimizer == 'zkp':
-            grads = self.trainer.get_model_grads()
+            if self.client_index < (self.args.client_num_per_round * self.args.malicious_ratio):  # malicious client
+                grads = self.trainer.get_model_grads(self.args.malicious_bound)
+            else:  # honest client
+                grads = self.trainer.get_model_grads(self.args.honest_bound)
+
         else:
             weights = self.trainer.get_model_params()
         # transform Tensor to list

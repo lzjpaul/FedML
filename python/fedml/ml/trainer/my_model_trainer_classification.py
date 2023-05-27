@@ -8,6 +8,7 @@ import copy
 import logging
 import numpy as np
 
+from collections import OrderedDict
 # from functorch import grad_and_value, make_functional, vmap
 
 
@@ -17,10 +18,24 @@ class ModelTrainerCLS(ClientTrainer):
         return self.model.cpu().state_dict()
 
     ### client 1: def get_model_grads(self)
-    def get_model_grads(self):
-        model_grads_dict = {}
+    # def get_model_grads(self):
+    #     model_grads_dict = OrderedDict()
+    #     for param_name, f in self.model.named_parameters():
+    #         model_grads_dict[param_name] = f.grad.data.cpu()
+    #     return model_grads_dict
+
+    def get_model_grads(self, param_bound):
+        eps=1e-8
+        model_grads_dict = OrderedDict()
+        flatten_tensor = None
         for param_name, f in self.model.named_parameters():
-            model_grads_dict[param_name] = f.grad.data.cpu()
+            if flatten_tensor is None:
+                flatten_tensor = torch.flatten(f.grad.data.cpu())
+            else:
+                flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.grad.data.cpu())))
+        flatten_tensor_norm = torch.norm(flatten_tensor)
+        for param_name, f in self.model.named_parameters():
+            model_grads_dict[param_name] = f.grad.data.cpu() * (param_bound / (eps + flatten_tensor_norm))
         return model_grads_dict
 
     def set_model_params(self, model_parameters):

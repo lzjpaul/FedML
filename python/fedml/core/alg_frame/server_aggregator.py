@@ -102,6 +102,7 @@ class ServerAggregator(ABC):
         ### local_sample_num, local_model_params = raw_grad_list[i]
         ### each i is a party: (num0, avg_params) = raw_grad_list[0]
         if self.args.privacy_optimizer == 'zkp':
+            """ no baseline checking
             training_num = 0
             for i in range(len(raw_client_model_or_grad_list)):
                 local_sample_num, local_model_grads = raw_client_model_or_grad_list[i]  # each i is a party
@@ -115,6 +116,46 @@ class ServerAggregator(ABC):
                         avg_grads[k] = local_model_grads[k] * w
                     else:
                         avg_grads[k] += local_model_grads[k] * w
+            """
+            ### checking
+            training_num = 0
+            valid_client_id_list = []
+            for i in range(len(raw_client_model_or_grad_list)):  # each party --> valid party + training number
+                local_sample_num, local_model_grads = raw_client_model_or_grad_list[i]  # each i is a party
+                ### check party validity
+                flatten_tensor = None
+                for k in local_model_grads.keys():
+                    if flatten_tensor is None:
+                        flatten_tensor = torch.flatten(local_model_grads[k])
+                    else:
+                        flatten_tensor = torch.cat((flatten_tensor, torch.flatten(local_model_grads[k])))
+                if self.args.check_type == 'strict':
+                    flatten_tensor_norm = torch.norm(flatten_tensor)
+                    if flatten_tensor_norm <= self.args.strict_bound:
+                        valid_client_id_list.append(i)
+                        training_num += local_sample_num
+                elif self.args.check_type == 'chi_sqr':  # has the C++ implementation??
+                    ### sample a gaussain the same shape as flatten_tensor
+                    gaussian_vector = torch.normal(mean=torch.zeros(list(flatten_tensor.size())[0]), std=torch.ones(list(flatten_tensor.size())[0]))
+                    ### dot product (flatten_tensor, gaussian_vector)
+                    gaussian_product = torch.dot(flatten_tensor, gaussian_vector)
+                    if gaussian_product <= self.args.chi_bound:
+                        valid_client_id_list.append(i)
+                        training_num += local_sample_num
+                else:  # normal
+                    valid_client_id_list.append(i)
+                    training_num += local_sample_num
+            (num0, avg_grads) = raw_client_model_or_grad_list[0]
+            for k in avg_grads.keys():
+                for i in range(0, len(raw_client_model_or_grad_list)):
+                    if i in valid_client_id_list:
+                        local_sample_number, local_model_grads = raw_client_model_or_grad_list[i]
+                        w = local_sample_number / training_num
+                        if i == valid_client_id_list[0]:  # ???  --> lists have order?? + may have no valid parties!!!
+                            avg_grads[k] = local_model_grads[k] * w
+                        else:
+                            avg_grads[k] += local_model_grads[k] * w 
+            ### checking till here
             ### fedml_aggregator.py get_dummy_input()
             if self.args.dataset == 'cifar10':
                 dummy_input, dummy_label = torch.ones((1, 3, 32, 32)).to(self.device), torch.ones(1).to(self.device)
@@ -128,6 +169,7 @@ class ServerAggregator(ABC):
             dummy_label = dummy_label.long()
             loss = self.criterion(log_probs, dummy_label)  # pylint: disable=E1102
             loss.backward()
+            num_named_params = 0
             for param_name, f in self.model.named_parameters():
                 # f.grad.data.add_(float(weightdecay), f.data)
                 if 'weight' in param_name and 'conv' in param_name:
@@ -137,7 +179,13 @@ class ServerAggregator(ABC):
                     # print ('param: ', f)
                     print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
                     print ('param grad size: ', f.grad.data.size())
+                num_named_params = num_named_params + 1
                 f.grad.data = avg_grads[param_name].to(self.device)
+            print ("23-5-24 test print num_named_params: ", num_named_params)
+            print ("23-5-24 test print avg_grads keys lengths: ", len(avg_grads.keys()))
+            print ("23-5-24 test print avg_grads keys: ", avg_grads.keys())
+            print ("23-5-24 test print self.model keys lengths: ", len(self.model.cpu().state_dict().keys()))
+            print ("23-5-24 test print self.model keys: ", self.model.cpu().state_dict().keys())
             self.optimizer.step()
             for param_name, f in self.model.named_parameters():
                 # f.grad.data.add_(float(weightdecay), f.data)
