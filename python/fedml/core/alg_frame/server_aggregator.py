@@ -143,8 +143,10 @@ class ServerAggregator(ABC):
                         valid_client_id_list.append(i)
                         training_num += local_sample_num
                 else:  # normal
+                    print ("test 23-5-28 just normal no checking in server_aggragator.py")
                     valid_client_id_list.append(i)
                     training_num += local_sample_num
+            print ("test 23-5-28 valid_client_id_list: ", valid_client_id_list)
             (num0, avg_grads) = raw_client_model_or_grad_list[0]
             for k in avg_grads.keys():
                 for i in range(0, len(raw_client_model_or_grad_list)):
@@ -156,7 +158,7 @@ class ServerAggregator(ABC):
                         else:
                             avg_grads[k] += local_model_grads[k] * w 
             ### checking till here
-            ### fedml_aggregator.py get_dummy_input()
+            ### refer to fedml_aggregator.py get_dummy_input()
             if self.args.dataset == 'cifar10':
                 dummy_input, dummy_label = torch.ones((1, 3, 32, 32)).to(self.device), torch.ones(1).to(self.device)
             else:
@@ -169,33 +171,41 @@ class ServerAggregator(ABC):
             dummy_label = dummy_label.long()
             loss = self.criterion(log_probs, dummy_label)  # pylint: disable=E1102
             loss.backward()
-            num_named_params = 0
+            # num_named_params = 0
             for param_name, f in self.model.named_parameters():
-                # f.grad.data.add_(float(weightdecay), f.data)
                 if 'weight' in param_name and 'conv' in param_name:
-                    print ('before optimizer step')
+                    print ('before weight update step')
                     print ('param name: ', param_name)
                     print ('param size:', f.data.size())
                     # print ('param: ', f)
                     print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
-                    print ('param grad size: ', f.grad.data.size())
-                num_named_params = num_named_params + 1
-                f.grad.data = avg_grads[param_name].to(self.device)
-            print ("23-5-24 test print num_named_params: ", num_named_params)
-            print ("23-5-24 test print avg_grads keys lengths: ", len(avg_grads.keys()))
-            print ("23-5-24 test print avg_grads keys: ", avg_grads.keys())
-            print ("23-5-24 test print self.model keys lengths: ", len(self.model.cpu().state_dict().keys()))
-            print ("23-5-24 test print self.model keys: ", self.model.cpu().state_dict().keys())
-            self.optimizer.step()
+            #         print ('param grad size: ', f.grad.data.size())
+            #     num_named_params = num_named_params + 1
+            #     f.grad.data = avg_grads[param_name].to(self.device)
+            for param_name, f in self.model.named_parameters():
+                f.data = f.data + avg_grads[param_name].to(self.device)
+                # f.add_(avg_grads[param_name].to(self.device))
+            # print ("23-5-24 test print num_named_params: ", num_named_params)
+            # print ("23-5-24 test print avg_grads keys lengths: ", len(avg_grads.keys()))
+            # print ("23-5-24 test print avg_grads keys: ", avg_grads.keys())
+            # print ("23-5-24 test print self.model keys lengths: ", len(self.model.cpu().state_dict().keys()))
+            # print ("23-5-24 test print self.model keys: ", self.model.cpu().state_dict().keys())
+            # self.optimizer.step()
             for param_name, f in self.model.named_parameters():
                 # f.grad.data.add_(float(weightdecay), f.data)
                 if 'weight' in param_name and 'conv' in param_name:
-                    print ('after optimizer step')
+                    print ('after weight update step')
                     print ('param name: ', param_name)
                     print ('param size:', f.data.size())
                     # print ('param: ', f)
                     print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
-                    print ('param grad size: ', f.grad.data.size())
+                    # print ('param grad size: ', f.grad.data.size())
+            # model_updated_param_dict = OrderedDict()
+            # for param_name, f in self.model.named_parameters():
+            #     model_updated_param_dict[param_name] = f.data.cpu()
+            # self.model.model_weight_update_dict = OrderedDict()
+            # for param_key in model_updated_param_dict.keys():
+            #     self.model.model_weight_update_dict[param_key] = model_updated_param_dict[param_key] - model_origin_param_dict[param_key]
             return self.model.cpu().state_dict()
         else:
             return FedMLAggOperator.agg(self.args, raw_client_model_or_grad_list)  # return averaged_params

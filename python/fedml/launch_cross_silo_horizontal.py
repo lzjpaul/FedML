@@ -21,6 +21,9 @@ def run_cross_silo_server():
     # load model
     model = fedml.model.create(args, output_dim)
 
+    print ("server device: ", device)
+    model = model.to(device)
+
     # print ("server model: ", model)
     print ("server model param address")
     print(list(map(id,model.parameters())))
@@ -43,6 +46,7 @@ def run_cross_silo_client():
 
     # init device
     device = fedml.device.get_device(args)
+    print ("client device: ", device)
 
     # load data
     dataset, output_dim = fedml.data.load(args)

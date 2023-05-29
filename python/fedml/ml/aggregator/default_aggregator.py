@@ -27,7 +27,8 @@ class DefaultServerAggregator(ServerAggregator):
                 print ('23-5-23 test print param name: ', param_name)
                 print ('23-5-23 test print param size:', f.data.size())
                 print ('23-5-23 test print param norm: ', np.linalg.norm(f.data.cpu().numpy()))
-                print ('23-5-23 test print param grad size: ', f.grad.data.size())
+                # if f.grad.data is not None:
+                #     print ('23-5-23 test print param grad size: ', f.grad.data.size())
         self.model.load_state_dict(model_parameters)
         for param_name, f in self.model.named_parameters():
             if 'weight' in param_name and 'conv' in param_name:
@@ -35,7 +36,8 @@ class DefaultServerAggregator(ServerAggregator):
                 print ('23-5-23 test print param name: ', param_name)
                 print ('23-5-23 test print param size:', f.data.size())
                 print ('23-5-23 test print param norm: ', np.linalg.norm(f.data.cpu().numpy()))
-                print ('23-5-23 test print param grad size: ', f.grad.data.size())
+                # if f.grad.data is not None:
+                #     print ('23-5-23 test print param grad size: ', f.grad.data.size())
 
     def _test(self, test_data, device, args):
         model = self.model

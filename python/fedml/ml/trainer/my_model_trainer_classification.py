@@ -24,18 +24,28 @@ class ModelTrainerCLS(ClientTrainer):
     #         model_grads_dict[param_name] = f.grad.data.cpu()
     #     return model_grads_dict
 
+    def get_model_grads_origin(self):
+        model_grads_dict = OrderedDict()
+        # for param_name, f in self.model.named_parameters():
+        # print ("self.model.model_weight_update_dict: ", self.model.model_weight_update_dict)
+        for param_key in self.model.model_weight_update_dict.keys():
+            model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key]
+        return model_grads_dict
+
     def get_model_grads(self, param_bound):
         eps=1e-8
         model_grads_dict = OrderedDict()
         flatten_tensor = None
-        for param_name, f in self.model.named_parameters():
+        # for param_name, f in self.model.named_parameters():
+        for param_key in self.model.model_weight_update_dict.keys():
             if flatten_tensor is None:
-                flatten_tensor = torch.flatten(f.grad.data.cpu())
+                flatten_tensor = torch.flatten(self.model.model_weight_update_dict[param_key])
             else:
-                flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.grad.data.cpu())))
+                flatten_tensor = torch.cat((flatten_tensor, torch.flatten(self.model.model_weight_update_dict[param_key])))
         flatten_tensor_norm = torch.norm(flatten_tensor)
-        for param_name, f in self.model.named_parameters():
-            model_grads_dict[param_name] = f.grad.data.cpu() * (param_bound / (eps + flatten_tensor_norm))
+        # for param_name, f in self.model.named_parameters():
+        for param_key in self.model.model_weight_update_dict.keys():
+            model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key] * (param_bound / (eps + flatten_tensor_norm))
         return model_grads_dict
 
     def set_model_params(self, model_parameters):
@@ -63,6 +73,11 @@ class ModelTrainerCLS(ClientTrainer):
                 amsgrad=True,
             )
 
+        ### in order for weight updates
+        model_origin_param_dict = OrderedDict()
+        for param_name, f in self.model.named_parameters():
+            model_origin_param_dict[param_name] = f.data.cpu()
+
         epoch_loss = []
         ### client -1: print model before updating
         print ("before client train epochs")
@@ -75,6 +90,8 @@ class ModelTrainerCLS(ClientTrainer):
             batch_loss = []
 
             for batch_idx, (x, labels) in enumerate(train_data):
+                if batch_idx % 10 == 0:
+                    print ("training batch_idx: ", batch_idx)
                 x, labels = x.to(device), labels.to(device)
                 # print ("labels: ", labels)
                 model.zero_grad()
@@ -107,6 +124,15 @@ class ModelTrainerCLS(ClientTrainer):
                     self.id, epoch, sum(epoch_loss) / len(epoch_loss)
                 )
             )
+
+        # weight update dictionary
+        model_updated_param_dict = OrderedDict()
+        for param_name, f in self.model.named_parameters():
+            model_updated_param_dict[param_name] = f.data.cpu()
+        self.model.model_weight_update_dict = OrderedDict()
+        for param_key in model_updated_param_dict.keys():
+            self.model.model_weight_update_dict[param_key] = model_updated_param_dict[param_key] - model_origin_param_dict[param_key]
+
 
     def train_iterations(self, train_data, device, args):
         model = self.model
