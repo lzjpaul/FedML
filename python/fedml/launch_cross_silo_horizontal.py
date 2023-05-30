@@ -4,6 +4,7 @@ from .runner import FedMLRunner
 from .constants import FEDML_TRAINING_PLATFORM_CROSS_SILO
 
 import numpy as np
+import torch
 
 def run_cross_silo_server():
     """FedML Octopus"""
@@ -23,6 +24,18 @@ def run_cross_silo_server():
 
     print ("server device: ", device)
     model = model.to(device)
+
+    ### check model norm
+    flatten_tensor = None
+    for param_name, f in model.named_parameters():
+        if flatten_tensor is None:
+            flatten_tensor = torch.flatten(f.data.cpu())
+        else:
+            flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.data.cpu())))
+    print ("23-5-29 print server init test flatten_tensor size: ", flatten_tensor.size())
+    print ("23-5-29 print server init test flatten_tensor norm: ", torch.norm(flatten_tensor))
+    ### check model norm
+
 
     # print ("server model: ", model)
     print ("server model param address")
@@ -53,6 +66,17 @@ def run_cross_silo_client():
 
     # load model
     model = fedml.model.create(args, output_dim)
+
+    ### check model norm
+    flatten_tensor = None
+    for param_name, f in model.named_parameters():
+        if flatten_tensor is None:
+            flatten_tensor = torch.flatten(f.data.cpu())
+        else:
+            flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.data.cpu())))
+    print ("23-5-29 print client init test flatten_tensor size: ", flatten_tensor.size())
+    print ("23-5-29 print client init test flatten_tensor norm: ", torch.norm(flatten_tensor))
+    ### check model norm
 
     # print ("client model: ", model)
     print ("client model param address")

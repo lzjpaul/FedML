@@ -25,12 +25,13 @@ class ModelTrainerCLS(ClientTrainer):
     #     return model_grads_dict
 
     def get_model_grads_origin(self):
-        model_grads_dict = OrderedDict()
+        # model_grads_dict = OrderedDict()
         # for param_name, f in self.model.named_parameters():
         # print ("self.model.model_weight_update_dict: ", self.model.model_weight_update_dict)
-        for param_key in self.model.model_weight_update_dict.keys():
-            model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key]
-        return model_grads_dict
+        # for param_key in self.model.model_weight_update_dict.keys():
+        #     model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key]
+        # return model_grads_dict
+        return self.model.model_weight_update_dict
 
     def get_model_grads(self, param_bound):
         eps=1e-8
@@ -54,6 +55,9 @@ class ModelTrainerCLS(ClientTrainer):
     def train(self, train_data, device, args):
         model = self.model
 
+        ### in order for weight updates
+        model_origin_param_dict = model.cpu().state_dict()
+
         model.to(device)
         print ("test fedml model.train()")
         model.train()
@@ -73,16 +77,15 @@ class ModelTrainerCLS(ClientTrainer):
                 amsgrad=True,
             )
 
-        ### in order for weight updates
-        model_origin_param_dict = OrderedDict()
-        for param_name, f in self.model.named_parameters():
-            model_origin_param_dict[param_name] = f.data.cpu()
+        # model_origin_param_dict = OrderedDict()
+        # for param_name, f in self.model.named_parameters():
+        #     model_origin_param_dict[param_name] = f.data.cpu()
 
         epoch_loss = []
         ### client -1: print model before updating
         print ("before client train epochs")
-        for param_name, f in self.model.named_parameters():
-            if 'weight' in param_name and 'conv' in param_name:
+        for param_name, f in model.named_parameters():
+            if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
                 print ('param name: ', param_name)
                 print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
         ### client 0: I only need one step?? not one epoch!!!
@@ -90,7 +93,7 @@ class ModelTrainerCLS(ClientTrainer):
             batch_loss = []
 
             for batch_idx, (x, labels) in enumerate(train_data):
-                if batch_idx % 10 == 0:
+                if batch_idx % 50 == 0:
                     print ("training batch_idx: ", batch_idx)
                 x, labels = x.to(device), labels.to(device)
                 # print ("labels: ", labels)
@@ -125,13 +128,19 @@ class ModelTrainerCLS(ClientTrainer):
                 )
             )
 
+        print ("after client train epochs")
+        for param_name, f in model.named_parameters():
+            if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
+                print ('param name: ', param_name)
+                print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
         # weight update dictionary
-        model_updated_param_dict = OrderedDict()
-        for param_name, f in self.model.named_parameters():
-            model_updated_param_dict[param_name] = f.data.cpu()
-        self.model.model_weight_update_dict = OrderedDict()
+        model_updated_param_dict = model.cpu().state_dict()
+        # model_updated_param_dict = OrderedDict()
+        # for param_name, f in self.model.named_parameters():
+        #     model_updated_param_dict[param_name] = f.data.cpu()
+        model.model_weight_update_dict = OrderedDict()
         for param_key in model_updated_param_dict.keys():
-            self.model.model_weight_update_dict[param_key] = model_updated_param_dict[param_key] - model_origin_param_dict[param_key]
+            model.model_weight_update_dict[param_key] = model_updated_param_dict[param_key] - model_origin_param_dict[param_key]
 
 
     def train_iterations(self, train_data, device, args):

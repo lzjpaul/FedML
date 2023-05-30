@@ -178,8 +178,17 @@ class FedMLServerManager(FedMLCommManager):
             mlops.event("server.agg_and_eval", event_started=True, event_value=str(self.args.round_idx))
             tick = time.time()
             print ("test fedml fedml_server_manager.py handle_message_receive_model_from_client self.aggregator.aggregate()")
+
+            # test before aggregate() --> can be commented
+            print ("23-5-29 test print test results before aggragate() and set_model_params")
+            self.aggregator.test_on_server_for_all_clients(self.args.round_idx)
+
             # server 3-1: aggregator
             global_model_params, model_list, model_list_idxes = self.aggregator.aggregate()
+
+            # test before aggregate() --> can be commented
+            print ("23-5-29 test print test results after aggragate() and set_model_params")
+            self.aggregator.test_on_server_for_all_clients(self.args.round_idx)
 
             logging.info("self.client_id_list_in_this_round = {}".format(self.client_id_list_in_this_round))
             new_client_id_list_in_this_round = []

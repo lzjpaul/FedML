@@ -22,7 +22,7 @@ class DefaultServerAggregator(ServerAggregator):
 
     def set_model_params(self, model_parameters):
         for param_name, f in self.model.named_parameters():
-            if 'weight' in param_name and 'conv' in param_name:
+            if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
                 print ('23-5-23 test print before set model_params')
                 print ('23-5-23 test print param name: ', param_name)
                 print ('23-5-23 test print param size:', f.data.size())
@@ -31,7 +31,7 @@ class DefaultServerAggregator(ServerAggregator):
                 #     print ('23-5-23 test print param grad size: ', f.grad.data.size())
         self.model.load_state_dict(model_parameters)
         for param_name, f in self.model.named_parameters():
-            if 'weight' in param_name and 'conv' in param_name:
+            if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
                 print ('23-5-23 test print after set model_params')
                 print ('23-5-23 test print param name: ', param_name)
                 print ('23-5-23 test print param size:', f.data.size())
@@ -96,6 +96,17 @@ class DefaultServerAggregator(ServerAggregator):
         test_num_samples = []
         test_tot_corrects = []
         test_losses = []
+
+        ### check model norm
+        flatten_tensor = None
+        for param_name, f in self.model.named_parameters():
+            if flatten_tensor is None:
+                flatten_tensor = torch.flatten(f.data.cpu())
+            else:
+                flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.data.cpu())))
+        print ("23-5-29 print before test flatten_tensor size: ", flatten_tensor.size())
+        print ("23-5-29 print before test flatten_tensor norm: ", torch.norm(flatten_tensor))
+        ### check model norm
 
         metrics = self._test(test_data, device, args)
 

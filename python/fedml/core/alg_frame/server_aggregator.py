@@ -165,15 +165,15 @@ class ServerAggregator(ABC):
                 pass
             # https://github.com/FedML-AI/FedML/blob/master/python/fedml/ml/trainer/my_model_trainer_classification.py
             # https://github.com/lzjpaul/pytorch/blob/residual-knowledge-driven/examples/residual-knowledge-driven-example-aaai-L2/train_lstm_main_hook_resreg_real_wlm_wd00001.py
-            self.model.train()
-            self.model.zero_grad()
-            log_probs = self.model(dummy_input)
-            dummy_label = dummy_label.long()
-            loss = self.criterion(log_probs, dummy_label)  # pylint: disable=E1102
-            loss.backward()
+            ## self.model.train()
+            ## self.model.zero_grad()
+            ## log_probs = self.model(dummy_input)
+            ## dummy_label = dummy_label.long()
+            ## loss = self.criterion(log_probs, dummy_label)  # pylint: disable=E1102
+            ## loss.backward()
             # num_named_params = 0
             for param_name, f in self.model.named_parameters():
-                if 'weight' in param_name and 'conv' in param_name:
+                if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
                     print ('before weight update step')
                     print ('param name: ', param_name)
                     print ('param size:', f.data.size())
@@ -182,8 +182,8 @@ class ServerAggregator(ABC):
             #         print ('param grad size: ', f.grad.data.size())
             #     num_named_params = num_named_params + 1
             #     f.grad.data = avg_grads[param_name].to(self.device)
-            for param_name, f in self.model.named_parameters():
-                f.data = f.data + avg_grads[param_name].to(self.device)
+            ## for param_name, f in self.model.named_parameters():
+            ##     f.data = f.data + avg_grads[param_name].to(self.device)
                 # f.add_(avg_grads[param_name].to(self.device))
             # print ("23-5-24 test print num_named_params: ", num_named_params)
             # print ("23-5-24 test print avg_grads keys lengths: ", len(avg_grads.keys()))
@@ -191,9 +191,14 @@ class ServerAggregator(ABC):
             # print ("23-5-24 test print self.model keys lengths: ", len(self.model.cpu().state_dict().keys()))
             # print ("23-5-24 test print self.model keys: ", self.model.cpu().state_dict().keys())
             # self.optimizer.step()
+            updated_model_dict = self.model.cpu().state_dict()
+            # print ("updated_model_dict['layer1.0.conv1.weight'] device: ", updated_model_dict['layer1.0.conv1.weight'].get_device())
+            # print ("avg_grads['layer1.0.conv1.weight'] device: ", avg_grads['layer1.0.conv1.weight'].get_device())
+            for k in updated_model_dict.keys():
+                updated_model_dict[k] = updated_model_dict[k] + avg_grads[k].cpu()
             for param_name, f in self.model.named_parameters():
                 # f.grad.data.add_(float(weightdecay), f.data)
-                if 'weight' in param_name and 'conv' in param_name:
+                if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
                     print ('after weight update step')
                     print ('param name: ', param_name)
                     print ('param size:', f.data.size())
@@ -206,7 +211,7 @@ class ServerAggregator(ABC):
             # self.model.model_weight_update_dict = OrderedDict()
             # for param_key in model_updated_param_dict.keys():
             #     self.model.model_weight_update_dict[param_key] = model_updated_param_dict[param_key] - model_origin_param_dict[param_key]
-            return self.model.cpu().state_dict()
+            return updated_model_dict
         else:
             return FedMLAggOperator.agg(self.args, raw_client_model_or_grad_list)  # return averaged_params
 

@@ -90,14 +90,14 @@ class FedMLAggregator(object):
         Context().add(Context.KEY_CLIENT_MODEL_LIST, model_list)
 
         # server 2-2: call the aggragate
-        dummy_features = self.get_dummy_input_tensor()
-        dummy_input_shape, dummy_input_type = self.get_input_shape_type()
-        print ("fedml_aggragator.py dummy_features: ", dummy_features)
-        print ("fedml_aggragator.py len(dummy_features): ", len(dummy_features))
-        print ("fedml_aggragator.py dummy_features[0]: ", dummy_features[0])
-        print ("fedml_aggragator.py dummy_features[0] size: ", dummy_features[0].size())
-        print ("fedml_aggragator.py dummy_input_shape: ", dummy_input_shape)
-        print ("fedml_aggragator.py dummy_input_type: ", dummy_input_type)
+        # dummy_features = self.get_dummy_input_tensor()
+        # dummy_input_shape, dummy_input_type = self.get_input_shape_type()
+        # print ("fedml_aggragator.py dummy_features: ", dummy_features)
+        # print ("fedml_aggragator.py len(dummy_features): ", len(dummy_features))
+        # print ("fedml_aggragator.py dummy_features[0]: ", dummy_features[0])
+        # print ("fedml_aggragator.py dummy_features[0] size: ", dummy_features[0].size())
+        # print ("fedml_aggragator.py dummy_input_shape: ", dummy_input_shape)
+        # print ("fedml_aggragator.py dummy_input_type: ", dummy_input_type)
         averaged_params = self.aggregator.aggregate(model_list)
 
         # server 2-3: what is this on_after_aggregation?
