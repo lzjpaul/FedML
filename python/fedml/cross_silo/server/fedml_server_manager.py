@@ -11,6 +11,9 @@ from ...core.distributed.communication.message import Message
 from ...core.distributed.fedml_comm_manager import FedMLCommManager
 from ...core.mlops.mlops_profiler_event import MLOpsProfilerEvent
 
+import di_zkp_interface
+import os
+import base64
 
 class FedMLServerManager(FedMLCommManager):
     ONLINE_STATUS_FLAG = "ONLINE"
@@ -33,6 +36,20 @@ class FedMLServerManager(FedMLCommManager):
         self.is_initialized = False
         self.client_id_list_in_this_round = None
         self.data_silo_index_list = None
+
+        # zkp_prob: initialize clients + protocol_type needes category
+        if args.privacy_optimizer == "zkp" and args.check_type == "zkp_prob":
+            if args.proto_type == 'int':
+                protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_INT
+            else:  # 'float'
+                protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_FLOAT
+            if args.model == 'resnet20'
+                args.dim = 54400
+            else:  # 'cnn'
+                args.dim = 12400
+            self.server_instance = di_zkp_interface.ServerInterface(args.client_num_in_total, args.max_malicious_clients, args.dim, 
+                    args.num_blinds_per_weight_key, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples, 
+                    args.linear_comb_bound_bits, args.max_bound_sq_bits, False, protocol_type)
 
     def run(self):
         super().run()
@@ -164,13 +181,30 @@ class FedMLServerManager(FedMLCommManager):
         sender_id = msg_params.get(MyMessage.MSG_ARG_KEY_SENDER)
         mlops.event("comm_c2s", event_started=False, event_value=str(self.args.round_idx), event_edge_id=sender_id)
 
-        model_params = msg_params.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS)
-        local_sample_number = msg_params.get(MyMessage.MSG_ARG_KEY_NUM_SAMPLES)
+        ### zkp_prob: initialize server each iteration! 
+        if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
+            self.server_instance.initialize_new_iteration(self.args.norm_bound, self.args.standard_deviation_factor)  # initialize server each iteration!
+            print("each new iteration self.server_instance.dim = " + str(self.server_instance.dim))
+            print("each new iteration self.server_instance.weight_bits = " + str(self.server_instance.weight_bits))
 
-        print ("test fedml -- before add_local_trained_result, in or not??")
-        self.aggregator.add_local_trained_result(
-            self.client_real_ids.index(sender_id), model_params, local_sample_number
-        )
+            client_message = msg_params.get('clientmessage')  # a long string
+            grad_shapes = msg_params.get('gradshapes')
+            local_sample_number = msg_params.get(MyMessage.MSG_ARG_KEY_NUM_SAMPLES)
+
+            print ("test fedml -- before add_local_trained_result_zkp_prob, in or not??")
+            self.aggregator.add_local_trained_result_zkp_prob(
+                self.client_real_ids.index(sender_id), client_message, grad_shapes, local_sample_number
+            )
+
+        else:
+            model_params = msg_params.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS)
+            local_sample_number = msg_params.get(MyMessage.MSG_ARG_KEY_NUM_SAMPLES)
+
+            print ("test fedml -- before add_local_trained_result, in or not??")
+            self.aggregator.add_local_trained_result(
+                self.client_real_ids.index(sender_id), model_params, local_sample_number
+            )
+
         b_all_received = self.aggregator.check_whether_all_receive()
         logging.info("b_all_received = " + str(b_all_received))
         if b_all_received:
@@ -180,15 +214,18 @@ class FedMLServerManager(FedMLCommManager):
             print ("test fedml fedml_server_manager.py handle_message_receive_model_from_client self.aggregator.aggregate()")
 
             # test before aggregate() --> can be commented
-            print ("23-5-29 test print test results before aggragate() and set_model_params")
-            self.aggregator.test_on_server_for_all_clients(self.args.round_idx)
+            # print ("23-5-29 test print test results before aggragate() and set_model_params")
+            # self.aggregator.test_on_server_for_all_clients(self.args.round_idx)
 
             # server 3-1: aggregator
-            global_model_params, model_list, model_list_idxes = self.aggregator.aggregate()
+            if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
+                global_model_params, model_list, model_list_idxes = self.aggregator.aggregate_zkp_prob(self.server_instance)
+            else:
+                global_model_params, model_list, model_list_idxes = self.aggregator.aggregate()
 
             # test before aggregate() --> can be commented
-            print ("23-5-29 test print test results after aggragate() and set_model_params")
-            self.aggregator.test_on_server_for_all_clients(self.args.round_idx)
+            # print ("23-5-29 test print test results after aggragate() and set_model_params")
+            # self.aggregator.test_on_server_for_all_clients(self.args.round_idx)
 
             logging.info("self.client_id_list_in_this_round = {}".format(self.client_id_list_in_this_round))
             new_client_id_list_in_this_round = []

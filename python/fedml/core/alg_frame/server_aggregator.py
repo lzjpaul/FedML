@@ -12,6 +12,10 @@ import fedml
 import torch
 from torch import nn
 import numpy as np
+import di_zkp_interface
+import os
+import base64
+import numpy as np
 
 class ServerAggregator(ABC):
     """Abstract base class for federated learning trainer."""
@@ -85,6 +89,84 @@ class ServerAggregator(ABC):
 
         return raw_client_model_or_grad_list, client_idxs
 
+    # self.aggregator.aggregate_zkp_prob(servic_instance, client_model_list)
+    # def aggregate(self, raw_client_model_or_grad_list: List[Tuple[float, OrderedDict]])
+    def aggregate_zkp_prob(self, servic_instance, client_model_list):  # client_model_list: (sample_num_dict[idx],client_message_dict[idx],grad_shapes_dict[idx]) + grad_shapes_dict: (param_name, shape_list): actually duplicated ...
+        print ("test print enter aggregate_zkp_prob server_aggragator.py")
+        if FedMLDefender.get_instance().is_defense_enabled():
+            print ("23-5-23 test print fedml aggregation is_defense_enabled")
+            return FedMLDefender.get_instance().defend_on_aggregation(
+                raw_client_grad_list=raw_client_model_or_grad_list,
+                base_aggregation_func=FedMLAggOperator.agg,
+                extra_auxiliary_info=self.get_model_params(),
+            )
+        if FedMLDifferentialPrivacy.get_instance().to_compute_params_in_aggregation_enabled():
+            print ("23-5-23 test print fedml aggregation to_compute_params_in_aggregation_enabled")
+            FedMLDifferentialPrivacy.get_instance().set_params_for_dp(raw_client_model_or_grad_list)
+        ### server 1: self.zkp + self.model=model + optimizer.step() --> returned avg_params!!!
+        ### server 1-2: copy the model_aggregator and torch aggregator, etc functions .. --> refer to agg_operator.py: line 26 - 45
+        ### local_sample_num, local_model_params = raw_grad_list[i]
+        ### each i is a party: (num0, avg_params) = raw_grad_list[0]
+        if True:  # "zkp"
+            for i in range(len(client_model_list)):  # each party --> valid party + training number
+                # local_sample_num, local_model_grads = raw_client_model_or_grad_list[i]  # each i is a party
+                server_instance.receive_1(client_model_list[i][1], i+1)  # client_message
+            server_instance.finish_iteration()
+            avg_grads_flatten_vector = server_instance.final_update_float_avg
+            avg_grads_flatten_vector_list = []
+            for j in range(args.dim):
+                avg_grads_flatten_vector_list.append(server_instance.final_update_float_avg[j])
+            avg_grads_flatten_vector_np = np.array(avg_grads_flatten_vector_list)
+            ### zkp_prob: server checking here ...
+            # (num0, avg_grads) = raw_client_model_or_grad_list[0]
+            (num0, client_msg0, grad_shapes0) = client_model_list[0]  # all clients share the grad_shape0, idx=0: (sample_num,client_message,grad_shapes) --> fedml_aggregator.py: client_model_list.append(...)
+            avg_grads = OrderedDict()
+            base_index = 0  # the param index begins from 0
+            for grad_shape in grad_shapes0:  # fold the avg_grads_flatten_vector_np
+                param_name = grad_shape[0]
+                param_size = np.prod(grad_shape[1])
+                # for i in range(0, len(raw_client_model_or_grad_list)):
+                    # if i in valid_client_id_list:
+                        # local_sample_number, local_model_grads = raw_client_model_or_grad_list[i]
+                        # w = local_sample_number / training_num
+                        # if i == valid_client_id_list[0]:  # ???  --> lists have order?? + may have no valid parties!!!
+                            # avg_grads[k] = local_model_grads[k] * w
+                        # else:
+                            # avg_grads[k] += local_model_grads[k] * w
+                avg_grads[param_name] = torch.from_numpy(avg_grads_flatten_vector_np[base_index:base_index+param_size].reshape(grad_shape[1]))
+                base_index = base_index + param_size
+            print ("test print 23-6-1 base_index: ", base_index)
+            print ("test print 23-6-1 args.dim: ", args.dim)
+            if base_index != args.dim:  
+                # exits the program
+                print ("base_index does not equal args.dim")
+                print(exit)
+                exit()    
+            else:
+                print("base_index equals args.dim")
+            ### zkp_prob till here
+            ### refer to fedml_aggregator.py get_dummy_input()
+            for param_name, f in self.model.named_parameters():
+                if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
+                    print ('before weight update step')
+                    print ('param name: ', param_name)
+                    print ('param size:', f.data.size())
+                    # print ('param: ', f)
+                    print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
+            updated_model_dict = self.model.cpu().state_dict()
+            for k in updated_model_dict.keys():
+                updated_model_dict[k] = updated_model_dict[k] + avg_grads[k]
+            for param_name, f in self.model.named_parameters():
+                # f.grad.data.add_(float(weightdecay), f.data)
+                if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
+                    print ('after weight update step')
+                    print ('param name: ', param_name)
+                    print ('param size:', f.data.size())
+                    # print ('param: ', f)
+                    print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
+                    # print ('param grad size: ', f.grad.data.size())
+            return updated_model_dict  # return averaged_params
+
     def aggregate(self, raw_client_model_or_grad_list: List[Tuple[float, OrderedDict]]):
         print ("23-5-23 test print enter aggregate test fedml server_aggragator.py call FedMLAggOperator.agg --> torch aggragator")
         if FedMLDefender.get_instance().is_defense_enabled():
@@ -124,25 +206,20 @@ class ServerAggregator(ABC):
                 local_sample_num, local_model_grads = raw_client_model_or_grad_list[i]  # each i is a party
                 ### check party validity
                 flatten_tensor = None
-                for k in local_model_grads.keys():
+                for k in local_model_grads.keys():  # this is already state_dict containing running_mean, etc ...
                     if flatten_tensor is None:
                         flatten_tensor = torch.flatten(local_model_grads[k])
                     else:
                         flatten_tensor = torch.cat((flatten_tensor, torch.flatten(local_model_grads[k])))
-                if self.args.check_type == 'strict':
+                if self.args.check_type == 'strict':  # using state_dict containing running_mean, etc ...
                     flatten_tensor_norm = torch.norm(flatten_tensor)
-                    if flatten_tensor_norm <= self.args.strict_bound:
+                    if flatten_tensor_norm <= self.args.norm_bound:
                         valid_client_id_list.append(i)
                         training_num += local_sample_num
-                elif self.args.check_type == 'chi_sqr':  # has the C++ implementation??
-                    ### sample a gaussain the same shape as flatten_tensor
-                    gaussian_vector = torch.normal(mean=torch.zeros(list(flatten_tensor.size())[0]), std=torch.ones(list(flatten_tensor.size())[0]))
-                    ### dot product (flatten_tensor, gaussian_vector)
-                    gaussian_product = torch.dot(flatten_tensor, gaussian_vector)
-                    if gaussian_product <= self.args.chi_bound:
-                        valid_client_id_list.append(i)
-                        training_num += local_sample_num
-                else:  # normal
+                ### baseline-2: server checking here ...
+                elif self.args.check_type == 'zkp_prob':
+                    pass
+                else:  # normal or no_check
                     print ("test 23-5-28 just normal no checking in server_aggragator.py")
                     valid_client_id_list.append(i)
                     training_num += local_sample_num
@@ -159,10 +236,10 @@ class ServerAggregator(ABC):
                             avg_grads[k] += local_model_grads[k] * w 
             ### checking till here
             ### refer to fedml_aggregator.py get_dummy_input()
-            if self.args.dataset == 'cifar10':
-                dummy_input, dummy_label = torch.ones((1, 3, 32, 32)).to(self.device), torch.ones(1).to(self.device)
-            else:
-                pass
+            # if self.args.dataset == 'cifar10':
+            #     dummy_input, dummy_label = torch.ones((1, 3, 32, 32)).to(self.device), torch.ones(1).to(self.device)
+            # else:
+            #     pass
             # https://github.com/FedML-AI/FedML/blob/master/python/fedml/ml/trainer/my_model_trainer_classification.py
             # https://github.com/lzjpaul/pytorch/blob/residual-knowledge-driven/examples/residual-knowledge-driven-example-aaai-L2/train_lstm_main_hook_resreg_real_wlm_wd00001.py
             ## self.model.train()

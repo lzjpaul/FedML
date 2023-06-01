@@ -74,14 +74,15 @@ class FedMLTrainer(object):
 
         MLOpsProfilerEvent.log_to_wandb({"Train/Time": time.time() - tick, "round": round_idx})
         ### client 2: grads = self.trainer.get_model_grads()
-        if self.args.privacy_optimizer == 'zkp':
-            if self.args.check_type == 'normal':  # no checking, no zkp malicious, just pass weight updates instead of model weights
+        if self.args.privacy_optimizer == 'zkp':  # pass gradients instead of weights
+            ### baseline-1 -- client will send bounded grads anyways ...
+            if self.args.check_type == 'normal':  # no checking + no malicious, just pass weight updates without bounding
                 grads = self.trainer.get_model_grads_origin()
-            else:  # need checking, and bound
-                if self.client_index < (self.args.client_num_per_round * self.args.malicious_ratio):  # malicious client
+            else:  # need checking (also no_check baseline), and bound
+                if self.client_index < self.args.max_malicious_clients:  # malicious client
                     grads = self.trainer.get_model_grads(self.args.malicious_bound)
                 else:  # honest client
-                    grads = self.trainer.get_model_grads(self.args.honest_bound)
+                    grads = self.trainer.get_model_grads(self.args.norm_bound)
         else:  # non-zkp
             weights = self.trainer.get_model_params()
         # transform Tensor to list

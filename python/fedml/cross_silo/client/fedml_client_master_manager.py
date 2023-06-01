@@ -13,6 +13,9 @@ from ...core.distributed.fedml_comm_manager import FedMLCommManager
 from ...core.distributed.communication.message import Message
 from ...core.mlops.mlops_profiler_event import MLOpsProfilerEvent
 
+import di_zkp_interface
+import os
+import base64
 
 class ClientMasterManager(FedMLCommManager):
     ONLINE_STATUS_FLAG = "ONLINE"
@@ -34,6 +37,21 @@ class ClientMasterManager(FedMLCommManager):
         self.has_sent_online_msg = False
         self.is_inited = False
 
+        # zkp_prob: initialize clients + protocol_type needes category
+        if args.privacy_optimizer == "zkp" and args.check_type == "zkp_prob":
+            if args.proto_type == 'int':
+                protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_INT
+            else:  # 'float'
+                protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_FLOAT
+            if args.model == 'resnet20'
+                args.dim = 54400
+            else:  # 'cnn'
+                args.dim = 12400
+            self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim, 
+                    args.num_blinds_per_weight_key, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples, 
+                    args.linear_comb_bound_bits, args.max_bound_sq_bits, rank, False, protocol_type)
+            print("init client_instance.dim = " + str(client_instance.dim))
+            print("init client_instance.client_id = " + str(client_instance.client_id))
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(
@@ -117,6 +135,21 @@ class ClientMasterManager(FedMLCommManager):
         mlops.log_training_finished_status()
         self.finish()
 
+    #self.send_model_to_server_zkp_prob(0, client_message, grad_shapes, local_sample_num)
+    def send_model_to_server_zkp_prob(self, receive_id, client_message, grad_shapes, local_sample_num):
+        tick = time.time()
+        mlops.event("comm_c2s", event_started=True, event_value=str(self.round_idx))
+        message = Message(MyMessage.MSG_TYPE_C2S_SEND_MODEL_TO_SERVER, self.client_real_id, receive_id,)
+        message.add_params("clientmessage", client_message)
+        message.add_params("gradshapes", grad_shapes)
+        message.add_params(MyMessage.MSG_ARG_KEY_NUM_SAMPLES, local_sample_num)
+        self.send_message(message)
+
+        MLOpsProfilerEvent.log_to_wandb({"Communication/Send_Total": time.time() - tick})
+        mlops.log_client_model_info(
+            self.round_idx+1, self.num_rounds, model_url=message.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS_URL),
+        )
+
     def send_model_to_server(self, receive_id, weights, local_sample_num):
         tick = time.time()
         mlops.event("comm_c2s", event_started=True, event_value=str(self.round_idx))
@@ -179,9 +212,34 @@ class ClientMasterManager(FedMLCommManager):
         if self.args.scenario == FEDML_CROSS_SILO_SCENARIO_HIERARCHICAL:
             weights = convert_model_params_from_ddp(weights)
 
+        ### zkp_prob: expand grads (after bounded)
+        if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
+            flatten_tensor = None
+            grad_shapes = [] # [(name, [shape]), (name, [shape]) ...]
+            for k in grads.keys():  # iterated the order according to inserting order
+                if flatten_tensor is None:
+                    flatten_tensor = torch.flatten(grads[k])
+                    grad_shapes.append((k, list(grads[k].shape)))
+                else:
+                    flatten_tensor = torch.cat((flatten_tensor, torch.flatten(grads[k])))
+                    grad_shapes.append((k, list(grads[k].shape)))
+            weights_i = flatten_tensor.cpu().numpy()  # cpu and numpy of expanded grad of client i
+            # weights_i = weight_updates_collection[i] # expanded grad
+            weights_di_zkp = di_zkp_interface.VecFloat(len(weights_i))
+            print ("for loop for the weights_di_zkp[j]")
+            for j in range(len(weights_i)):
+                weights_di_zkp[j] = weights_i[j]  # swig vector ...
+            # print(weights)
+            # print(type(weights))
+            client_message = self.client_instance.send_1(self.args.norm_bound, self.args.standard_deviation_factor, weights_di_zkp)
+        ### need to send both client_message and grad_shapes --> client_message is a string ...
+
         ### client 4-2: judge zkp, if yes, self.send_model_to_server(0, grads, local_sample_num)
         if self.args.privacy_optimizer == 'zkp':
-            self.send_model_to_server(0, grads, local_sample_num)
+            if self.args.check_type == "zkp_prob":  # pass both client_message and grad_shapes
+                self.send_model_to_server_zkp_prob(0, client_message, grad_shapes, local_sample_num)
+            else:
+                self.send_model_to_server(0, grads, local_sample_num)
         else:
             self.send_model_to_server(0, weights, local_sample_num)
 

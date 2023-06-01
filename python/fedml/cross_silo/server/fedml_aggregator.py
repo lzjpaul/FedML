@@ -54,6 +54,23 @@ class FedMLAggregator(object):
     def set_global_model_params(self, model_parameters):
         self.aggregator.set_model_params(model_parameters)
 
+    #self.aggregator.add_local_trained_result_zkp_prob(self.client_real_ids.index(sender_id), client_message, grad_shapes, local_sample_number)
+    # "zkp_prob"
+    def add_local_trained_result_zkp_prob(index, client_message, grad_shapes, sample_num):
+        logging.info("add_model_zkp. index = %d" % index)
+        print ("test print add_model_zkp index: ", index)
+        # print ("comment-5-16 test model_params: \n", model_params)
+        print ("test sample_num: \n", sample_num)
+
+        # for dictionary model_params, we let the user level code to control the device
+        # if type(model_params) is not dict:
+        #     model_params = ml_engine_adapter.model_params_to_device(self.args, model_params, self.device)
+
+        self.client_message_dict[index] = client_message
+        self.sample_num_dict[index] = sample_num
+        self.grad_shapes_dict[index] = grad_shapes
+        self.flag_client_model_uploaded_dict[index] = True
+
     def add_local_trained_result(self, index, model_params, sample_num):
         logging.info("add_model. index = %d" % index)
         print ("23-5-23 test print add_model index: ", index)
@@ -77,6 +94,43 @@ class FedMLAggregator(object):
             self.flag_client_model_uploaded_dict[idx] = False
         return True
 
+    def aggregate_zkp_prob(self, servic_instance):
+        print ("test fedml fedml_aggregator.py FedMLAggregator class aggregate_zkp_prob() function return three variables: averaged_params, model_list, model_list_idxes")
+        start_time = time.time()
+
+        client_model_list = []
+        for idx in range(self.client_num):
+            client_model_list.append((self.sample_num_dict[idx], self.client_message_dict[idx], self.grad_shapes_dict[idx]))
+        
+        # model_list is the list after outlier removal
+        # server 2-1: what is this on_before_aggregation(model_list)?
+        # model_list, model_list_idxes = self.aggregator.on_before_aggregation(model_list)
+        model_list_idxes = [i for i in range(len(client_model_list))]
+        # Context().add(Context.KEY_CLIENT_MODEL_LIST, model_list)
+        Context().add(Context.KEY_CLIENT_MODEL_LIST, client_model_list)
+
+        # server 2-2: call the aggragate
+        averaged_params = self.aggregator.aggregate_zkp_prob(servic_instance, client_model_list)
+
+        # server 2-3: what is this on_after_aggregation?
+        if type(averaged_params) is dict:
+            if len(averaged_params) == self.client_num + 1: # aggregator pass extra {-1 : global_parms_dict}  as global_params
+                itr_count = len(averaged_params) - 1        # do not apply on_after_aggregation to client -1
+            else:
+                itr_count = len(averaged_params)
+
+            for client_index in range(itr_count):
+                averaged_params[client_index] = self.aggregator.on_after_aggregation(averaged_params[client_index])
+        else:
+            averaged_params = self.aggregator.on_after_aggregation(averaged_params)
+
+        # server 2-4: what is this set_global_model_params?
+        self.set_global_model_params(averaged_params)
+
+        end_time = time.time()
+        logging.info("aggregate time cost: %d" % (end_time - start_time))
+        return averaged_params, client_model_list, model_list_idxes
+    
     def aggregate(self):
         print ("test fedml fedml_aggregator.py FedMLAggregator class aggregate() function return three variables: averaged_params, model_list, model_list_idxes")
         start_time = time.time()
