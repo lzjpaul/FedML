@@ -45,6 +45,8 @@ class FedMLAggregator(object):
         self.model_dict = dict()
         self.sample_num_dict = dict()
         self.flag_client_model_uploaded_dict = dict()
+        self.client_message_dict = dict()
+        self.grad_shapes_dict = dict()
         for idx in range(self.client_num):
             self.flag_client_model_uploaded_dict[idx] = False
 
@@ -56,7 +58,7 @@ class FedMLAggregator(object):
 
     #self.aggregator.add_local_trained_result_zkp_prob(self.client_real_ids.index(sender_id), client_message, grad_shapes, local_sample_number)
     # "zkp_prob"
-    def add_local_trained_result_zkp_prob(index, client_message, grad_shapes, sample_num):
+    def add_local_trained_result_zkp_prob(self, index, client_message, grad_shapes, sample_num):
         logging.info("add_model_zkp. index = %d" % index)
         print ("test print add_model_zkp index: ", index)
         # print ("comment-5-16 test model_params: \n", model_params)

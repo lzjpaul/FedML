@@ -12,7 +12,6 @@ import fedml
 import torch
 from torch import nn
 import numpy as np
-import di_zkp_interface
 import os
 import base64
 import numpy as np
@@ -91,7 +90,7 @@ class ServerAggregator(ABC):
 
     # self.aggregator.aggregate_zkp_prob(servic_instance, client_model_list)
     # def aggregate(self, raw_client_model_or_grad_list: List[Tuple[float, OrderedDict]])
-    def aggregate_zkp_prob(self, servic_instance, client_model_list):  # client_model_list: (sample_num_dict[idx],client_message_dict[idx],grad_shapes_dict[idx]) + grad_shapes_dict: (param_name, shape_list): actually duplicated ...
+    def aggregate_zkp_prob(self, server_instance, client_model_list):  # client_model_list: (sample_num_dict[idx],client_message_dict[idx],grad_shapes_dict[idx]) + grad_shapes_dict: (param_name, shape_list): actually duplicated ...
         print ("test print enter aggregate_zkp_prob server_aggragator.py")
         if FedMLDefender.get_instance().is_defense_enabled():
             print ("23-5-23 test print fedml aggregation is_defense_enabled")
@@ -114,7 +113,7 @@ class ServerAggregator(ABC):
             server_instance.finish_iteration()
             avg_grads_flatten_vector = server_instance.final_update_float_avg
             avg_grads_flatten_vector_list = []
-            for j in range(args.dim):
+            for j in range(self.args.dim):
                 avg_grads_flatten_vector_list.append(server_instance.final_update_float_avg[j])
             avg_grads_flatten_vector_np = np.array(avg_grads_flatten_vector_list)
             ### zkp_prob: server checking here ...
@@ -133,11 +132,11 @@ class ServerAggregator(ABC):
                             # avg_grads[k] = local_model_grads[k] * w
                         # else:
                             # avg_grads[k] += local_model_grads[k] * w
-                avg_grads[param_name] = torch.from_numpy(avg_grads_flatten_vector_np[base_index:base_index+param_size].reshape(grad_shape[1]))
+                avg_grads[param_name] = torch.from_numpy(avg_grads_flatten_vector_np[int(base_index):int(base_index+param_size)].reshape(grad_shape[1]))
                 base_index = base_index + param_size
             print ("test print 23-6-1 base_index: ", base_index)
-            print ("test print 23-6-1 args.dim: ", args.dim)
-            if base_index != args.dim:  
+            print ("test print 23-6-1 args.dim: ", self.args.dim)
+            if base_index != self.args.dim:  
                 # exits the program
                 print ("base_index does not equal args.dim")
                 print(exit)

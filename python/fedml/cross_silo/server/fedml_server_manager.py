@@ -43,10 +43,6 @@ class FedMLServerManager(FedMLCommManager):
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_INT
             else:  # 'float'
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_FLOAT
-            if args.model == 'resnet20'
-                args.dim = 54400
-            else:  # 'cnn'
-                args.dim = 12400
             self.server_instance = di_zkp_interface.ServerInterface(args.client_num_in_total, args.max_malicious_clients, args.dim, 
                     args.num_blinds_per_weight_key, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples, 
                     args.linear_comb_bound_bits, args.max_bound_sq_bits, False, protocol_type)

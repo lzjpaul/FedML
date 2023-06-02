@@ -385,6 +385,12 @@ from .core.common.ml_engine_backend import MLEngineBackend
 
 from .runner import FedMLRunner
 
+# from .di_zkp_interface import PROTOCOL_TYPE_NON_PRIV_INT
+# from .di_zkp_interface import PROTOCOL_TYPE_NON_PRIV_FLOAT
+# from .di_zkp_interface import ServerInterface
+# from .di_zkp_interface import ClientInterface
+# from .di_zkp_interface import VecFloat
+
 __all__ = [
     "MLEngineBackend",
     "device",

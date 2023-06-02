@@ -25,17 +25,19 @@ def run_cross_silo_server():
     print ("server device: ", device)
     model = model.to(device)
 
-    ### check model norm
+    ### check model size and norm
+    model_dict = model.cpu().state_dict()
     flatten_tensor = None
-    for param_name, f in model.named_parameters():
+    for k in model_dict.keys():  # this is already state_dict containing running_mean, etc ...
         if flatten_tensor is None:
-            flatten_tensor = torch.flatten(f.data.cpu())
+            flatten_tensor = torch.flatten(model_dict[k])
         else:
-            flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.data.cpu())))
+            flatten_tensor = torch.cat((flatten_tensor, torch.flatten(model_dict[k])))
     print ("23-5-29 print server init test flatten_tensor size: ", flatten_tensor.size())
     print ("23-5-29 print server init test flatten_tensor norm: ", torch.norm(flatten_tensor))
-    ### check model norm
+    ### check model size and norm
 
+    args.dim = list(flatten_tensor.size())[0]
 
     # print ("server model: ", model)
     print ("server model param address")
@@ -67,16 +69,22 @@ def run_cross_silo_client():
     # load model
     model = fedml.model.create(args, output_dim)
 
-    ### check model norm
+    print ("client device: ", device)
+    model = model.to(device)
+
+    ### check model size and norm
+    model_dict = model.cpu().state_dict()
     flatten_tensor = None
-    for param_name, f in model.named_parameters():
+    for k in model_dict.keys():  # this is already state_dict containing running_mean, etc ...
         if flatten_tensor is None:
-            flatten_tensor = torch.flatten(f.data.cpu())
+            flatten_tensor = torch.flatten(model_dict[k])
         else:
-            flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.data.cpu())))
+            flatten_tensor = torch.cat((flatten_tensor, torch.flatten(model_dict[k])))
     print ("23-5-29 print client init test flatten_tensor size: ", flatten_tensor.size())
     print ("23-5-29 print client init test flatten_tensor norm: ", torch.norm(flatten_tensor))
-    ### check model norm
+    ### check model size and norm
+
+    args.dim = list(flatten_tensor.size())[0]
 
     # print ("client model: ", model)
     print ("client model param address")

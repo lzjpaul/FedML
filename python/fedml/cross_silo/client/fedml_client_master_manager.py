@@ -16,6 +16,7 @@ from ...core.mlops.mlops_profiler_event import MLOpsProfilerEvent
 import di_zkp_interface
 import os
 import base64
+import torch
 
 class ClientMasterManager(FedMLCommManager):
     ONLINE_STATUS_FLAG = "ONLINE"
@@ -43,15 +44,11 @@ class ClientMasterManager(FedMLCommManager):
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_INT
             else:  # 'float'
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_FLOAT
-            if args.model == 'resnet20'
-                args.dim = 54400
-            else:  # 'cnn'
-                args.dim = 12400
             self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim, 
                     args.num_blinds_per_weight_key, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples, 
                     args.linear_comb_bound_bits, args.max_bound_sq_bits, rank, False, protocol_type)
-            print("init client_instance.dim = " + str(client_instance.dim))
-            print("init client_instance.client_id = " + str(client_instance.client_id))
+            print("init client_instance.dim = " + str(self.client_instance.dim))
+            print("init client_instance.client_id = " + str(self.client_instance.client_id))
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(
@@ -224,11 +221,21 @@ class ClientMasterManager(FedMLCommManager):
                     flatten_tensor = torch.cat((flatten_tensor, torch.flatten(grads[k])))
                     grad_shapes.append((k, list(grads[k].shape)))
             weights_i = flatten_tensor.cpu().numpy()  # cpu and numpy of expanded grad of client i
+            print ("numpy weights_i: \n", weights_i)
+            weights_i = list(weights_i)
             # weights_i = weight_updates_collection[i] # expanded grad
+            # print ("weights_i shape: ", weights_i.shape)
+            print ("len(weights_i): ", len(weights_i))
             weights_di_zkp = di_zkp_interface.VecFloat(len(weights_i))
             print ("for loop for the weights_di_zkp[j]")
+            print ("weights_i[0]:", weights_i[0])
+            print ("type(weights_i): ", type(weights_i))
+            print ("weights_di_zkp[0]: ", weights_di_zkp[0])
+            print ("type(weights_di_zkp): ", type(weights_di_zkp))
             for j in range(len(weights_i)):
-                weights_di_zkp[j] = weights_i[j]  # swig vector ...
+                # if j % 1000 == 0:
+                #     print ("j: ", j)
+                weights_di_zkp[j] = float(weights_i[j])  # swig vector ...
             # print(weights)
             # print(type(weights))
             client_message = self.client_instance.send_1(self.args.norm_bound, self.args.standard_deviation_factor, weights_di_zkp)
