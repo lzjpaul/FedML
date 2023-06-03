@@ -17,6 +17,7 @@ import di_zkp_interface
 import os
 import base64
 import torch
+import numpy as np
 
 class ClientMasterManager(FedMLCommManager):
     ONLINE_STATUS_FLAG = "ONLINE"
@@ -47,8 +48,9 @@ class ClientMasterManager(FedMLCommManager):
             self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim, 
                     args.num_blinds_per_weight_key, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples, 
                     args.linear_comb_bound_bits, args.max_bound_sq_bits, rank, False, protocol_type)
-            print("init client_instance.dim = " + str(self.client_instance.dim))
-            print("init client_instance.client_id = " + str(self.client_instance.client_id))
+            print ("init client_instance rank: ", rank)
+            print ("init client_instance.dim = " + str(self.client_instance.dim))
+            print ("init client_instance.client_id = " + str(self.client_instance.client_id))
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(
@@ -213,18 +215,26 @@ class ClientMasterManager(FedMLCommManager):
         if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
             flatten_tensor = None
             grad_shapes = [] # [(name, [shape]), (name, [shape]) ...]
+            grad_shapes_name_validate = []
             for k in grads.keys():  # iterated the order according to inserting order
+                grad_shapes_name_validate.append(k)
                 if flatten_tensor is None:
                     flatten_tensor = torch.flatten(grads[k])
                     grad_shapes.append((k, list(grads[k].shape)))
                 else:
                     flatten_tensor = torch.cat((flatten_tensor, torch.flatten(grads[k])))
                     grad_shapes.append((k, list(grads[k].shape)))
+            print ("23-6-2 test print grad_shapes_name_validate: ", grad_shapes_name_validate)
+            print ("23-6-2 test print after scale and before client encode flatten_tensor norm: ", torch.norm(flatten_tensor))
+            print ("23-6-2 test print max: ", torch.max(flatten_tensor))
+            print ("23-6-2 test print min: ", torch.min(flatten_tensor))
+            print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
             weights_i = flatten_tensor.cpu().numpy()  # cpu and numpy of expanded grad of client i
-            print ("numpy weights_i: \n", weights_i)
+            print ("numpy weights_i[:10]: \n", weights_i[:10])
+            # out_file = 'flatten_tensor_' + str(self.rank) + '_' + str(self.round_idx) + '.npy'
+            # np.save(out_file, weights_i)
             weights_i = list(weights_i)
-            # weights_i = weight_updates_collection[i] # expanded grad
-            # print ("weights_i shape: ", weights_i.shape)
+            print ("list weights_i[:10]: \n", weights_i[:10])
             print ("len(weights_i): ", len(weights_i))
             weights_di_zkp = di_zkp_interface.VecFloat(len(weights_i))
             print ("for loop for the weights_di_zkp[j]")
@@ -238,7 +248,10 @@ class ClientMasterManager(FedMLCommManager):
                 weights_di_zkp[j] = float(weights_i[j])  # swig vector ...
             # print(weights)
             # print(type(weights))
+            for j in range(6):
+                print ("weights_di_zkp[j]: ", weights_di_zkp[j])
             client_message = self.client_instance.send_1(self.args.norm_bound, self.args.standard_deviation_factor, weights_di_zkp)
+            print ("23-6-2 test print client side client_message[:10]: \n", client_message[:10])
         ### need to send both client_message and grad_shapes --> client_message is a string ...
 
         ### client 4-2: judge zkp, if yes, self.send_model_to_server(0, grads, local_sample_num)

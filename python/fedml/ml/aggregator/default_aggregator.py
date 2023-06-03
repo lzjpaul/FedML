@@ -98,14 +98,14 @@ class DefaultServerAggregator(ServerAggregator):
         test_losses = []
 
         ### check model norm
-        flatten_tensor = None
-        for param_name, f in self.model.named_parameters():
-            if flatten_tensor is None:
-                flatten_tensor = torch.flatten(f.data.cpu())
-            else:
-                flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.data.cpu())))
-        print ("23-5-29 print before test flatten_tensor size: ", flatten_tensor.size())
-        print ("23-5-29 print before test flatten_tensor norm: ", torch.norm(flatten_tensor))
+        # flatten_tensor = None
+        # for param_name, f in self.model.named_parameters():
+        #     if flatten_tensor is None:
+        #         flatten_tensor = torch.flatten(f.data.cpu())
+        #     else:
+        #         flatten_tensor = torch.cat((flatten_tensor, torch.flatten(f.data.cpu())))
+        # print ("23-5-29 print before test flatten_tensor size: ", flatten_tensor.size())
+        # print ("23-5-29 print before test flatten_tensor norm: ", torch.norm(flatten_tensor))
         ### check model norm
 
         metrics = self._test(test_data, device, args)

@@ -109,13 +109,21 @@ class ServerAggregator(ABC):
         if True:  # "zkp"
             for i in range(len(client_model_list)):  # each party --> valid party + training number
                 # local_sample_num, local_model_grads = raw_client_model_or_grad_list[i]  # each i is a party
+                print ("23-6-2 print server_instance.receive_1 i+1: ", i+1)
+                print ("23-6-2 print server side client_message[:10]: ", client_model_list[i][1][:10])
                 server_instance.receive_1(client_model_list[i][1], i+1)  # client_message
             server_instance.finish_iteration()
             avg_grads_flatten_vector = server_instance.final_update_float_avg
+            print("23-6-2 test print python valid client count: ", server_instance.valid_client_count())
             avg_grads_flatten_vector_list = []
             for j in range(self.args.dim):
                 avg_grads_flatten_vector_list.append(server_instance.final_update_float_avg[j])
             avg_grads_flatten_vector_np = np.array(avg_grads_flatten_vector_list)
+            print ("23-6-2 test print avg_grads_flatten_vector_np max: ", np.max(avg_grads_flatten_vector_np))
+            print ("23-6-2 test print avg_grads_flatten_vector_np min: ", np.min(avg_grads_flatten_vector_np))
+            print ("23-6-2 test print avg_grads_flatten_vector_np norm: ", np.linalg.norm(avg_grads_flatten_vector_np))
+            print ("23-6-2 test print avg_grads_flatten_vector_np shape: ", avg_grads_flatten_vector_np.shape)
+            print ("23-6-2 test print avg_grads_flatten_vector_np[:10]: \n", avg_grads_flatten_vector_np[:10])
             ### zkp_prob: server checking here ...
             # (num0, avg_grads) = raw_client_model_or_grad_list[0]
             (num0, client_msg0, grad_shapes0) = client_model_list[0]  # all clients share the grad_shape0, idx=0: (sample_num,client_message,grad_shapes) --> fedml_aggregator.py: client_model_list.append(...)

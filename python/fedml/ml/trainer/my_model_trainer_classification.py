@@ -44,6 +44,11 @@ class ModelTrainerCLS(ClientTrainer):
             else:
                 flatten_tensor = torch.cat((flatten_tensor, torch.flatten(self.model.model_weight_update_dict[param_key])))
         flatten_tensor_norm = torch.norm(flatten_tensor)
+        print ("23-6-2 test print before scale grad flatten_tensor[:10]: ", flatten_tensor[:10])
+        print ("23-6-2 test print max: ", torch.max(flatten_tensor))
+        print ("23-6-2 test print min: ", torch.min(flatten_tensor))
+        print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
+        print ("23-6-2 test print flatten_tensor_norm: ", flatten_tensor_norm)
         # for param_name, f in self.model.named_parameters():
         for param_key in self.model.model_weight_update_dict.keys():
             model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key] * (param_bound / (eps + flatten_tensor_norm))
