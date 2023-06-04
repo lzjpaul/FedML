@@ -214,6 +214,17 @@ class ClientMasterManager(FedMLCommManager):
         if self.args.scenario == FEDML_CROSS_SILO_SCENARIO_HIERARCHICAL:
             weights = convert_model_params_from_ddp(weights)
 
+        ### zkp_prob: check after scale
+        flatten_tensor = None
+        for k in grads.keys():  # iterated the order according to inserting order
+            if flatten_tensor is None:
+                flatten_tensor = torch.flatten(grads[k])
+            else:
+                flatten_tensor = torch.cat((flatten_tensor, torch.flatten(grads[k])))
+        print ("23-6-2 test print after scale and before client encode flatten_tensor norm: ", torch.norm(flatten_tensor))
+        print ("23-6-2 test print max: ", torch.max(flatten_tensor))
+        print ("23-6-2 test print min: ", torch.min(flatten_tensor))
+        print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
         ### zkp_prob: expand grads (after bounded)
         if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
             flatten_tensor = None

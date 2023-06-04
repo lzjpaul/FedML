@@ -56,6 +56,7 @@ class ModelTrainerCLS(ClientTrainer):
             else:
                 flatten_tensor = torch.cat((flatten_tensor, torch.flatten(self.model.model_weight_update_dict[param_key])))
         flatten_tensor_norm = torch.norm(flatten_tensor)
+        print ("23-6-2 test print param_bound: ", param_bound)
         print ("23-6-2 test print before scale grad flatten_tensor[:10]: ", flatten_tensor[:10])
         print ("23-6-2 test print max: ", torch.max(flatten_tensor))
         print ("23-6-2 test print min: ", torch.min(flatten_tensor))
@@ -111,7 +112,7 @@ class ModelTrainerCLS(ClientTrainer):
 
             for batch_idx, (x, labels) in enumerate(train_data):
                 # print ("training batch_idx: ", batch_idx)
-                if batch_idx % 100 == 0:
+                if batch_idx % 10 == 0:
                     print ("training batch_idx: ", batch_idx)
                 x, labels = x.to(device), labels.to(device)
                 # print ("x shape: ", x.shape)

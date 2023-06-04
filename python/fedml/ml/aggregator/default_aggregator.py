@@ -131,4 +131,8 @@ class DefaultServerAggregator(ServerAggregator):
 
         stats = {"test_acc": test_acc, "test_loss": test_loss}
         logging.info(stats)
+        with open('results_acc.txt', 'a') as the_file:
+            the_file.write(str(test_acc) + '\n')
+        with open('results_loss.txt', 'a') as the_file:
+            the_file.write(str(test_loss) + '\n')
         return (test_acc, test_loss, None, None)

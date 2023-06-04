@@ -211,6 +211,8 @@ class ServerAggregator(ABC):
             valid_client_id_list = []
             for i in range(len(raw_client_model_or_grad_list)):  # each party --> valid party + training number
                 local_sample_num, local_model_grads = raw_client_model_or_grad_list[i]  # each i is a party
+                print ("test 23-6-4 server aggregator client i: ", i)
+                print ("test 23-6-4 server aggregator client local_sample_num: ", local_sample_num)
                 ### check party validity
                 flatten_tensor = None
                 for k in local_model_grads.keys():  # this is already state_dict containing running_mean, etc ...
@@ -229,12 +231,15 @@ class ServerAggregator(ABC):
                     valid_client_id_list.append(i)
                     training_num += local_sample_num
             print ("test 23-5-28 valid_client_id_list: ", valid_client_id_list)
+            print ("test 23-5-28 training_num: ", training_num)
             (num0, avg_grads) = raw_client_model_or_grad_list[0]
             for k in avg_grads.keys():
                 for i in range(0, len(raw_client_model_or_grad_list)):
                     if i in valid_client_id_list:
                         local_sample_number, local_model_grads = raw_client_model_or_grad_list[i]
                         w = local_sample_number / training_num
+                        print ("test 23-6-4 server aggregator honest client i: ", i)
+                        print ("test 23-6-4 server aggregator honest client w: ", w)
                         if i == valid_client_id_list[0]:  # ???  --> lists have order?? + may have no valid parties!!!
                             avg_grads[k] = local_model_grads[k] * w
                         else:
