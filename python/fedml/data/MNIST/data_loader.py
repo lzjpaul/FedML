@@ -21,6 +21,8 @@ def download_mnist(data_cache_dir):
     logging.info(file_path)
 
     # Download the file (if we haven't already)
+    print ('file_path: ', file_path)
+    print ("os.path.exists(file_path): ", os.path.exists(file_path))
     if not os.path.exists(file_path):
         wget.download(FEDML_DATA_MNIST_URL, out=file_path)
 
@@ -48,11 +50,18 @@ def read_data(train_data_dir, test_data_dir):
     test_data = {}
 
     train_files = os.listdir(train_data_dir)
+    print ("train_files: ", train_files)
     train_files = [f for f in train_files if f.endswith(".json")]
+    print ("train_files: ", train_files)
     for f in train_files:
+        print ("train_data_dir: ", train_data_dir)
+        print ("f: ", f)
         file_path = os.path.join(train_data_dir, f)
+        print ("file_path: ", file_path)
+        print ("begin cdata = json.load(inf)")
         with open(file_path, "r") as inf:
             cdata = json.load(inf)
+        print ("after cdata = json.load(inf)")
         clients.extend(cdata["users"])
         if "hierarchies" in cdata:
             groups.extend(cdata["hierarchies"])
@@ -80,6 +89,11 @@ def batch_data(args, data, batch_size):
     data_x = data["x"]
     data_y = data["y"]
 
+    # print ("len(data_x): ", len(data_x))
+    # print ("len(data_x[0]): ", len(data_x[0]))
+    # print ("len(data_y): ", len(data_y))
+    # print ("len(data_y[0]): ", len(data_y[0]))
+
     # randomly shuffle data
     np.random.seed(100)
     rng_state = np.random.get_state()
@@ -102,7 +116,7 @@ def load_partition_data_mnist_by_device_id(batch_size, device_id, train_path="MN
     test_path += os.path.join("/", device_id, "test")
     return load_partition_data_mnist(batch_size, train_path, test_path)
 
-
+"""
 def load_partition_data_mnist(
     args, batch_size, train_path=os.path.join(os.getcwd(), "MNIST", "train"),
         test_path=os.path.join(os.getcwd(), "MNIST", "test")
@@ -125,6 +139,12 @@ def load_partition_data_mnist(
         user_test_data_num = len(test_data[u]["x"])
         train_data_num += user_train_data_num
         test_data_num += user_test_data_num
+        print ("u: ", u)
+        print ("g: ", g)
+        print ("user_train_data_num: ", user_train_data_num)
+        print ("train_data_num: ", train_data_num)
+        print ("user_test_data_num: ", user_test_data_num)
+        print ("test_data_num: ", test_data_num)
         train_data_local_num_dict[client_idx] = user_train_data_num
 
         # transform to batches
@@ -141,6 +161,75 @@ def load_partition_data_mnist(
     client_num = client_idx
     class_num = 10
 
+    return (
+        client_num,
+        train_data_num,
+        test_data_num,
+        train_data_global,
+        test_data_global,
+        train_data_local_num_dict,
+        train_data_local_dict,
+        test_data_local_dict,
+        class_num,
+    )
+"""
+
+def load_partition_data_mnist(
+    args, batch_size, train_path=os.path.join(os.getcwd(), "MNIST", "train"),
+        test_path=os.path.join(os.getcwd(), "MNIST", "test")
+):
+    users, groups, train_data, test_data = read_data(train_path, test_path)
+
+    if len(groups) == 0:
+        groups = [None for _ in users]
+    train_data_num = 0
+    test_data_num = 0
+    train_data_local_dict = dict()
+    test_data_local_dict = dict()
+    train_data_local_num_dict = dict()
+    train_data_global = list()
+    test_data_global = list()
+    client_idx = 0
+    client_num_in_total = args.client_num_in_total
+    logging.info("loading data...")
+    for u, g in zip(users, groups):
+        user_train_data_num = len(train_data[u]["x"])
+        user_test_data_num = len(test_data[u]["x"])
+        train_data_num += user_train_data_num
+        test_data_num += user_test_data_num
+        # print ("u: ", u)
+        # print ("g: ", g)
+        # print ("user_train_data_num: ", user_train_data_num)
+        # print ("train_data_num: ", train_data_num)
+        # print ("user_test_data_num: ", user_test_data_num)
+        # print ("test_data_num: ", test_data_num)
+        if client_idx < client_num_in_total:
+            train_data_local_num_dict[client_idx] = user_train_data_num
+        else:
+            train_data_local_num_dict[client_idx%client_num_in_total] = train_data_local_num_dict[client_idx%client_num_in_total] + user_train_data_num
+
+        # transform to batches
+        train_batch = batch_data(args, train_data[u], batch_size)
+        test_batch = batch_data(args, test_data[u], batch_size)
+
+        # index using client index
+        if client_idx < client_num_in_total:
+            train_data_local_dict[client_idx] = train_batch
+            test_data_local_dict[client_idx] = test_batch
+        else:
+            train_data_local_dict[client_idx%client_num_in_total] = train_data_local_dict[client_idx%client_num_in_total] +  train_batch
+            test_data_local_dict[client_idx%client_num_in_total] = test_data_local_dict[client_idx%client_num_in_total] + test_batch  
+        train_data_global += train_batch
+        test_data_global += test_batch
+        client_idx += 1
+    logging.info("finished the loading data")
+    client_num = client_num_in_total
+    class_num = 10
+
+    print ("client_num: ", client_num)
+    print ("train_data_num ", train_data_num)
+    print ("test_data_num: ", test_data_num)
+    print ("train_data_local_num_dict: \n", train_data_local_num_dict)
     return (
         client_num,
         train_data_num,

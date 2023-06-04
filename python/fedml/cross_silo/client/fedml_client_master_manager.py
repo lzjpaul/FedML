@@ -45,6 +45,8 @@ class ClientMasterManager(FedMLCommManager):
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_INT
             else:  # 'float'
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_FLOAT
+            args.linear_comb_bound_bits = args.weight_bits + args.random_normal_bit_shifter + 4
+            args.max_bound_sq_bits = 2 * (args.weight_bits + args.random_normal_bit_shifter) + 20
             self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim, 
                     args.num_blinds_per_weight_key, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples, 
                     args.linear_comb_bound_bits, args.max_bound_sq_bits, rank, False, protocol_type)
@@ -115,6 +117,7 @@ class ClientMasterManager(FedMLCommManager):
             self.sync_process_group(self.round_idx, model_params, client_index)
 
         self.trainer_dist_adapter.update_dataset(int(client_index))
+        logging.info("update_dataset client_index = %s" % str(client_index))
         logging.info("current round index {}, total rounds {}".format(self.round_idx, self.num_rounds))
         self.trainer_dist_adapter.update_model(model_params)
         if self.round_idx < self.num_rounds:

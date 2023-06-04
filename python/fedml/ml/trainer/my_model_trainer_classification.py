@@ -31,6 +31,18 @@ class ModelTrainerCLS(ClientTrainer):
         # for param_key in self.model.model_weight_update_dict.keys():
         #     model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key]
         # return model_grads_dict
+        flatten_tensor = None
+        for param_key in self.model.model_weight_update_dict.keys():
+            if flatten_tensor is None:
+                flatten_tensor = torch.flatten(self.model.model_weight_update_dict[param_key])
+            else:
+                flatten_tensor = torch.cat((flatten_tensor, torch.flatten(self.model.model_weight_update_dict[param_key])))
+        flatten_tensor_norm = torch.norm(flatten_tensor)
+        print ("23-6-3 test print get_model_grads_origin grad flatten_tensor[:10]: ", flatten_tensor[:10])
+        print ("23-6-3 test print get_model_grads_origin max: ", torch.max(flatten_tensor))
+        print ("23-6-3 test print get_model_grads_origin min: ", torch.min(flatten_tensor))
+        print ("23-6-3 test print get_model_grads_origin flatten_tensor shape: ", flatten_tensor.shape)
+        print ("23-6-3 test print get_model_grads_origin flatten_tensor_norm: ", flatten_tensor_norm)
         return self.model.model_weight_update_dict
 
     def get_model_grads(self, param_bound):
@@ -98,9 +110,11 @@ class ModelTrainerCLS(ClientTrainer):
             batch_loss = []
 
             for batch_idx, (x, labels) in enumerate(train_data):
-                if batch_idx % 50 == 0:
+                # print ("training batch_idx: ", batch_idx)
+                if batch_idx % 100 == 0:
                     print ("training batch_idx: ", batch_idx)
                 x, labels = x.to(device), labels.to(device)
+                # print ("x shape: ", x.shape)
                 # print ("labels: ", labels)
                 model.zero_grad()
                 log_probs = model(x)

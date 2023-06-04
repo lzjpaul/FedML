@@ -279,6 +279,8 @@ def load_synthetic_data(args):
             train_path=os.path.join(args.data_cache_dir, "MNIST", "train"),
             test_path=os.path.join(args.data_cache_dir, "MNIST", "test"),
         )
+        print ("train_data_num: ", train_data_num)
+        print ("test_data_num: ", test_data_num)
         """
         For shallow NN or linear models, 
         we uniformly sample a fraction of clients each round (as the original FedAvg paper)

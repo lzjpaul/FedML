@@ -220,12 +220,10 @@ class ServerAggregator(ABC):
                         flatten_tensor = torch.cat((flatten_tensor, torch.flatten(local_model_grads[k])))
                 if self.args.check_type == 'strict':  # using state_dict containing running_mean, etc ...
                     flatten_tensor_norm = torch.norm(flatten_tensor)
-                    if flatten_tensor_norm <= self.args.norm_bound:
+                    if flatten_tensor_norm <= (self.args.norm_bound * 1.01):
                         valid_client_id_list.append(i)
                         training_num += local_sample_num
                 ### baseline-2: server checking here ...
-                elif self.args.check_type == 'zkp_prob':
-                    pass
                 else:  # normal or no_check
                     print ("test 23-5-28 just normal no checking in server_aggragator.py")
                     valid_client_id_list.append(i)
