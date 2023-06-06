@@ -48,16 +48,22 @@ class FedMLTrainer(object):
                 self.train_local = self.train_data_local_dict[client_index][self.args.proc_rank_in_silo]
             else:
                 self.train_local = self.train_data_local_dict[client_index]
+                print ("test 23-6-5 client_index: ", client_index)
+                print ("test 23-6-5 len(self.train_data_local_dict[client_index]): ", len(self.train_data_local_dict[client_index]))
         else:
             self.train_local = None
 
         if self.train_data_local_num_dict is not None:
             self.local_sample_number = self.train_data_local_num_dict[client_index]
+            print ("test 23-6-5 client_index: ", client_index)
+            print ("test 23-6-5 self.train_data_local_num_dict[client_index]: ", self.train_data_local_num_dict[client_index])
         else:
             self.local_sample_number = 0
 
         if self.test_data_local_dict is not None:
             self.test_local = self.test_data_local_dict[client_index]
+            print ("test 23-6-5 client_index: ", client_index)
+            print ("test 23-6-5 len(self.test_data_local_dict[client_index]): ", len(self.test_data_local_dict[client_index]))
         else:
             self.test_local = None
 
@@ -79,6 +85,7 @@ class FedMLTrainer(object):
             if self.args.check_type == 'normal':  # no malicious, just pass weight updates without bounding
                 grads = self.trainer.get_model_grads_origin()
             else:  # need checking (also no_check baseline), and bound
+                print ("23-6-5 test print malicious or honest self.client_index: ", self.client_index)
                 if self.client_index < self.args.max_malicious_clients:  # malicious client
                     print ("malicious client")
                     grads = self.trainer.get_model_grads(self.args.malicious_bound)

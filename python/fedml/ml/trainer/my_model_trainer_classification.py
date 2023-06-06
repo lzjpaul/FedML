@@ -74,8 +74,12 @@ class ModelTrainerCLS(ClientTrainer):
         model = self.model
 
         ### in order for weight updates
-        model_origin_param_dict = model.cpu().state_dict()
+        model_origin_param_dict_cpu = model.cpu().state_dict()
+        model_origin_param_dict = OrderedDict()
+        for param_key in model_origin_param_dict_cpu.keys():
+            model_origin_param_dict[param_key] = model_origin_param_dict_cpu[param_key].clone().detach()
 
+        # if args.using_gpu == 'true':
         model.to(device)
         print ("test fedml model.train()")
         model.train()
@@ -94,6 +98,7 @@ class ModelTrainerCLS(ClientTrainer):
                 weight_decay=args.weight_decay,
                 amsgrad=True,
             )
+        print ("optimizer: ", optimizer)
 
         # model_origin_param_dict = OrderedDict()
         # for param_name, f in self.model.named_parameters():
@@ -109,20 +114,44 @@ class ModelTrainerCLS(ClientTrainer):
         ### client 0: I only need one step?? not one epoch!!!
         for epoch in range(args.epochs):
             batch_loss = []
-
+            # print ("23-6-5 test print len(train_data): ", len(train_data))
             for batch_idx, (x, labels) in enumerate(train_data):
                 # print ("training batch_idx: ", batch_idx)
-                if batch_idx % 10 == 0:
+                if batch_idx % 30 == 0:
                     print ("training batch_idx: ", batch_idx)
                 x, labels = x.to(device), labels.to(device)
-                # print ("x shape: ", x.shape)
+                
+                if batch_idx < 0:
+                    print ("x shape: ", x.shape)
+                    print ("x norm: ", torch.norm(x))
                 # print ("labels: ", labels)
                 model.zero_grad()
                 log_probs = model(x)
                 labels = labels.long()
                 loss = criterion(log_probs, labels)  # pylint: disable=E1102
                 loss.backward()
+                if batch_idx < 0:
+                    print ("before optimizer step + after loss.backward()")
+                    print ("device: ", device)
+                    for param_name, param_data in model.named_parameters():
+                        if param_name == 'conv2d_1.weight' or param_name == 'conv2d_2.weight':
+                            print ("param_name: ", param_name)
+                            print ("param_data.data size: ", param_data.data.size())
+                            print ("param_data norm: ", torch.norm(param_data.data))
+                            # print ("param_data: ", param_data)
+                            if param_data.grad is not None:
+                                print ("param_grad norm: ", torch.norm(param_data.grad.data))
                 optimizer.step()
+                if batch_idx < 0:
+                    print ("after optimizer step")
+                    for param_name, param_data in model.named_parameters():
+                        if param_name == 'conv2d_1.weight' or param_name == 'conv2d_2.weight':
+                            print ("param_name: ", param_name)
+                            print ("param_data.data size: ", param_data.data.size())
+                            print ("param_data norm: ", torch.norm(param_data.data))
+                            # print ("param_data: ", param_data)
+                            if param_data.grad is not None:
+                                print ("param_grad norm: ", torch.norm(param_data.grad.data))
 
                 # Uncommet this following line to avoid nan loss
                 # torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
@@ -136,7 +165,49 @@ class ModelTrainerCLS(ClientTrainer):
                 #         loss.item(),
                 #     )
                 # )
+                if batch_idx < 0:
+                    print ("batch_idx check weight update: ", batch_idx)
+                    model_intermedia_param_dict = model.cpu().state_dict()
+                    model_batch_update_param_dict = OrderedDict()
+                    for param_key in model_intermedia_param_dict.keys():
+                        model_batch_update_param_dict[param_key] = model_intermedia_param_dict[param_key] - model_origin_param_dict[param_key]
+                    flatten_tensor = None
+                    for param_key in model_batch_update_param_dict.keys():
+                        if flatten_tensor is None:
+                            flatten_tensor = torch.flatten(model_batch_update_param_dict[param_key])
+                        else:
+                            flatten_tensor = torch.cat((flatten_tensor, torch.flatten(model_batch_update_param_dict[param_key])))
+                    flatten_tensor_norm = torch.norm(flatten_tensor)
+                    print ("23-6-3 test inter batch flatten_tensor[:10]: ", flatten_tensor[:10])
+                    print ("23-6-3 test inter max: ", torch.max(flatten_tensor))
+                    print ("23-6-3 test inter batch min: ", torch.min(flatten_tensor))
+                    print ("23-6-3 test inter batch flatten_tensor shape: ", flatten_tensor.shape)
+                    print ("23-6-3 test inter batch flatten_tensor_norm: ", flatten_tensor_norm)
+                    
+                    print ("conv2d_1.weight check")
+                    conv2d_1_weight_update = model_batch_update_param_dict['conv2d_1.weight']
+                    print ("23-6-3 test conv2d_1_weight_update max: ", torch.max(conv2d_1_weight_update))
+                    print ("23-6-3 test conv2d_1_weight_update batch min: ", torch.min(conv2d_1_weight_update))
+                    print ("23-6-3 test conv2d_1_weight_update batch flatten_tensor shape: ", conv2d_1_weight_update.shape)
+                    print ("23-6-3 test conv2d_1_weight_update inter batch flatten_tensor_norm: ", torch.norm(conv2d_1_weight_update))
+                    print ("23-6-3 test conv2d_1_weight_update model_intermedia_param_dict['conv2d_1.weight'] norm: ", torch.norm(model_intermedia_param_dict['conv2d_1.weight']))
+                    print ("23-6-3 test conv2d_1_weight_update model_origin_param_dict['conv2d_1.weight'] norm: ", torch.norm(model_origin_param_dict['conv2d_1.weight']))
+                    print ("23-6-3 test conv2d_1_weight_update model_intermedia_param_dict['conv2d_1.weight']-model_origin_param_dict['conv2d_1.weight']  norm: ", torch.norm(model_intermedia_param_dict['conv2d_1.weight']-model_origin_param_dict['conv2d_1.weight']))
 
+
+ 
+                    print ("conv2d_2.weight check")
+                    conv2d_2_weight_update = model_batch_update_param_dict['conv2d_2.weight']
+                    print ("23-6-3 test conv2d_2_weight_update max: ", torch.max(conv2d_2_weight_update))
+                    print ("23-6-3 test conv2d_2_weight_update batch min: ", torch.min(conv2d_2_weight_update))
+                    print ("23-6-3 test conv2d_2_weight_update batch flatten_tensor shape: ", conv2d_2_weight_update.shape)
+                    print ("23-6-3 test conv2d_2_weight_update inter batch flatten_tensor_norm: ", torch.norm(conv2d_2_weight_update))
+                    print ("23-6-3 test conv2d_2_weight_update model_intermedia_param_dict['conv2d_2.weight'] norm: ", torch.norm(model_intermedia_param_dict['conv2d_2.weight']))
+                    print ("23-6-3 test conv2d_2_weight_update model_origin_param_dict['conv2d_2.weight'] norm: ", torch.norm(model_origin_param_dict['conv2d_2.weight']))
+                    print ("23-6-3 test conv2d_2_weight_update model_intermedia_param_dict['conv2d_2.weight']-model_origin_param_dict['conv2d_2.weight']  norm: ", torch.norm(model_intermedia_param_dict['conv2d_2.weight']-model_origin_param_dict['conv2d_2.weight']))
+
+                    model.to(device)
+                    
                 batch_loss.append(loss.item())
             if len(batch_loss) == 0:
                 epoch_loss.append(0.0)
@@ -240,6 +311,8 @@ class ModelTrainerCLS(ClientTrainer):
                 pred = model(x)
                 target = target.long()
                 loss = criterion(pred, target)  # pylint: disable=E1102
+                # print ("server test batch_idx: , batch_idx")
+                # print ("server test loss: ", loss.item())
 
                 _, predicted = torch.max(pred, -1)
                 correct = predicted.eq(target).sum()

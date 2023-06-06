@@ -63,6 +63,10 @@ def run_cross_silo_client():
     device = fedml.device.get_device(args)
     print ("client device: ", device)
 
+    if args.dataset == 'mnist':
+        args.data_cache_dir = args.data_cache_dir + '/client_' + str(args.rank)
+        print ("mnist dataset client args.data_cache_dir: ", args.data_cache_dir)
+
     # load data
     dataset, output_dim = fedml.data.load(args)
 
