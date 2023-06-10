@@ -225,6 +225,7 @@ class ClientMasterManager(FedMLCommManager):
         print ("23-6-2 test print max: ", torch.max(flatten_tensor))
         print ("23-6-2 test print min: ", torch.min(flatten_tensor))
         print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
+        print ("23-6-2 test flatten_tensor[:10]: ", flatten_tensor[:10])
         ### zkp_prob: expand grads (after bounded)
         if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
             flatten_tensor = None

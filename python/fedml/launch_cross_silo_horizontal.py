@@ -28,6 +28,7 @@ def run_cross_silo_server():
     ### check model size and norm
     model_dict = model.cpu().state_dict()
     flatten_tensor = None
+    print ("server model_dict.keys(): ", model_dict.keys())
     for k in model_dict.keys():  # this is already state_dict containing running_mean, etc ...
         if flatten_tensor is None:
             flatten_tensor = torch.flatten(model_dict[k])
@@ -79,6 +80,7 @@ def run_cross_silo_client():
     ### check model size and norm
     model_dict = model.cpu().state_dict()
     flatten_tensor = None
+    print ("client model_dict.keys(): ", model_dict.keys())
     for k in model_dict.keys():  # this is already state_dict containing running_mean, etc ...
         if flatten_tensor is None:
             flatten_tensor = torch.flatten(model_dict[k])

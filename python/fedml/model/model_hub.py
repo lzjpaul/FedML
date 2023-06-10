@@ -92,4 +92,5 @@ def create(args, output_dim):
         model = None  # for server MNN, the model is saved as computational graph and then send it to clients.
     else:
         raise Exception("no such model definition, please check the argument spelling or customize your own model")
+    logging.info(f'model parameters: {sum([p.data.nelement() for p in model.parameters()])}')
     return model
