@@ -23,14 +23,14 @@ train_args:
   federated_optimizer: "FedAvg"
   privacy_optimizer: "zkp"  # "non_zkp"
   # honest_bound: 1
-  norm_bound: 953  # also used in zkp_prob, in honest_bound
-  malicious_bound: 953
-  check_type: "normal"  # ("zkp_prob" or "normal") "strict" or "no_check" (client bound but server no check) or "normal" (client no bound, server no check--benchmark 0.73+)
+  norm_bound: 450.0  # also used in zkp_prob, in honest_bound
+  malicious_bound: -675.0 # 450, -675.0, 4500. 
+  check_type: "no_check"  # ("zkp_prob" or "normal") "strict" or "no_check" (client bound but server no check) or "normal" (client no bound, server no check--benchmark 0.73+)
   # malicious_ratio: 0
   # chi_bound: 1
   # norm_bound: 2  # also used in zkp_prob
   ## begin for zkp_prob
-  max_malicious_clients: 1
+  max_malicious_clients: 2  # 16 clients
   num_blinds_per_weight_key: 2
   random_normal_bit_shifter: 24
   # linear_comb_bound_bits: 44
@@ -41,20 +41,20 @@ train_args:
   weight_bits: 24
   ### end for zkp_prob
   client_id_list:
-  client_num_in_total: 2
-  client_num_per_round: 2
-  comm_round: 2
+  client_num_in_total: 16
+  client_num_per_round: 16
+  comm_round: 150
   epochs: 1
-  batch_size: 128
-  client_optimizer: sgd
-  learning_rate: 0.03
-  weight_decay: 0.001
+  batch_size: 32
+  client_optimizer: adam
+  learning_rate: 0.001
+  weight_decay: 0.0001
 
 validation_args:
   frequency_of_the_test: 1
 
 device_args:
-  using_gpu: true
+  using_gpu: false
   gpu_mapping_file: config/gpu_mapping.yaml
   gpu_mapping_key: mapping_default
   # using_gpu: true
@@ -70,4 +70,4 @@ tracking_args:
   enable_wandb: false
   wandb_key: ee0b5f53d949c84cee7decbe7a629e63fb2f8408
   wandb_project: fedml
-  wandb_name: fedml_torch_fedavg_cifar10_resnet20_zkp
+  wandb_name: fedml_torch_fedavg_cifar10_resnet20_zkp_16_clients

@@ -23,8 +23,8 @@ train_args:
   privacy_optimizer: "zkp"  # "non_zkp"
   # honest_bound: 1
   norm_bound: 1.6  # also used in zkp_prob, in honest_bound
-  malicious_bound: 1.6
-  check_type: "zkp_prob"  # ("zkp_prob" or "normal") "strict" or "no_check" (client bound but server no check) or "normal" (client no bound, server no check--benchmark 0.73+)
+  malicious_bound: 1.6  # 1.6 or 2.4 
+  check_type: "normal"  # "zkp_prob" or "normal" or "strict" or "no_check" (client bound but server no check) or "normal" (client no bound, server no check--benchmark 0.73+)
   # malicious_ratio: 0
   # chi_bound: 1
   # norm_bound: 2  # also used in zkp_prob
@@ -42,7 +42,7 @@ train_args:
   client_id_list:
   client_num_in_total: 2
   client_num_per_round: 2
-  comm_round: 10
+  comm_round: 2
   epochs: 1
   batch_size: 64
   client_optimizer: sgd
