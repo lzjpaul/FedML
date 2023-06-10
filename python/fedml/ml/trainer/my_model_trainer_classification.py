@@ -64,7 +64,18 @@ class ModelTrainerCLS(ClientTrainer):
         print ("23-6-2 test print flatten_tensor_norm: ", flatten_tensor_norm)
         # for param_name, f in self.model.named_parameters():
         for param_key in self.model.model_weight_update_dict.keys():
-            model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key] * (param_bound / (eps + flatten_tensor_norm))
+            if self.args.dataset == 'cifar10' and self.args.check_type == 'no_check' and (('running_mean' in param_key) or ('running_var' in param_key) or ('num_batches_tracked' in param_key)):
+                print ("not scaling weight_update: " + param_key)
+                # if 'num_batches_tracked' in param_key:
+                #     print ("weight_update norm: ", self.model.model_weight_update_dict[param_key])
+                # else:
+                #     print ("weight_update norm: ", torch.norm(self.model.model_weight_update_dict[param_key]))
+                model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key] * (self.args.norm_bound / (eps + flatten_tensor_norm))
+            else:
+                # if 'weight' in param_key:
+                #     print ('scaling weight_update: ' + param_key)
+                #     print ("weight_update norm: ", torch.norm(self.model.model_weight_update_dict[param_key]))
+                model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key] * (param_bound / (eps + flatten_tensor_norm))
         return model_grads_dict
 
     def set_model_params(self, model_parameters):
