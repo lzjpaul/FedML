@@ -211,8 +211,8 @@ class ServerAggregator(ABC):
             valid_client_id_list = []
             for i in range(len(raw_client_model_or_grad_list)):  # each party --> valid party + training number
                 local_sample_num, local_model_grads = raw_client_model_or_grad_list[i]  # each i is a party
-                print ("test 23-6-4 server aggregator client i: ", i)
-                print ("test 23-6-4 server aggregator client local_sample_num: ", local_sample_num)
+                # print ("test 23-6-4 server aggregator client i: ", i)
+                # print ("test 23-6-4 server aggregator client local_sample_num: ", local_sample_num)
                 ### check party validity
                 flatten_tensor = None
                 for k in local_model_grads.keys():  # this is already state_dict containing running_mean, etc ...
@@ -227,7 +227,7 @@ class ServerAggregator(ABC):
                         training_num += local_sample_num
                 ### baseline-2: server checking here ...
                 else:  # normal or no_check
-                    print ("test 23-5-28 just normal no checking in server_aggragator.py")
+                    print ("test 23-5-28 just normal or no_check in server_aggragator.py")
                     valid_client_id_list.append(i)
                     training_num += local_sample_num
             print ("test 23-5-28 valid_client_id_list: ", valid_client_id_list)
@@ -237,14 +237,29 @@ class ServerAggregator(ABC):
                 for i in range(0, len(raw_client_model_or_grad_list)):
                     if i in valid_client_id_list:
                         local_sample_number, local_model_grads = raw_client_model_or_grad_list[i]
-                        w = local_sample_number / training_num
-                        print ("test 23-6-4 server aggregator honest client i: ", i)
-                        print ("test 23-6-4 server aggregator honest client w: ", w)
+                        if self.args.dataset == 'cifar10' and self.args.check_type == 'strict':  # (1) cifar-10 not even partition + (2) zkp_prob is average 
+                            w = 1.0 / len(valid_client_id_list) 
+                        else:
+                            w = local_sample_number / training_num
+                        if k == 'conv1.weight':
+                            print ("test 23-6-4 server aggregator honest client i for conv1.weight: ", i)
+                            print ("test 23-6-4 server aggregator honest client w for conv1.weight: ", w)
                         if i == valid_client_id_list[0]:  # ???  --> lists have order?? + may have no valid parties!!!
                             avg_grads[k] = local_model_grads[k] * w
                         else:
                             avg_grads[k] += local_model_grads[k] * w 
             ### checking till here
+            # avg_grads_flatten_tensor = None
+            # for k in avg_grads.keys():  # this is already state_dict containing running_mean, etc ...
+            #     if avg_grads_flatten_tensor is None:
+            #         avg_grads_flatten_tensor = torch.flatten(avg_grads[k])
+            #     else:
+            #         avg_grads_flatten_tensor = torch.cat((avg_grads_flatten_tensor, torch.flatten(avg_grads[k])))
+            # print ("23-6-6 test print after aggregate avg_grads_flatten_vector max: ", torch.max(avg_grads_flatten_tensor))
+            # print ("23-6-6 test print after aggregate avg_grads_flatten_vector min: ", torch.min(avg_grads_flatten_tensor))
+            # print ("23-6-6 test print after aggregate avg_grads_flatten_vector norm: ", torch.norm(avg_grads_flatten_tensor))
+            # print ("23-6-6 test print after aggregate avg_grads_flatten_vector shape: ", avg_grads_flatten_tensor.shape)
+            # print ("23-6-6 test print after aggregate avg_grads_flatten_vector[:10]: \n", avg_grads_flatten_tensor[:10])
             ### refer to fedml_aggregator.py get_dummy_input()
             # if self.args.dataset == 'cifar10':
             #     dummy_input, dummy_label = torch.ones((1, 3, 32, 32)).to(self.device), torch.ones(1).to(self.device)
@@ -298,6 +313,17 @@ class ServerAggregator(ABC):
             # self.model.model_weight_update_dict = OrderedDict()
             # for param_key in model_updated_param_dict.keys():
             #     self.model.model_weight_update_dict[param_key] = model_updated_param_dict[param_key] - model_origin_param_dict[param_key]
+            # updated_flatten_tensor = None
+            # for k in updated_model_dict.keys():  # this is already state_dict containing running_mean, etc ...
+            #     if updated_flatten_tensor is None:
+            #         updated_flatten_tensor = torch.flatten(updated_model_dict[k])
+            #     else:
+            #         updated_flatten_tensor = torch.cat((updated_flatten_tensor, torch.flatten(updated_model_dict[k])))
+            # print ("23-6-6 test print after updated updated_flatten_tensor max: ", torch.max(updated_flatten_tensor))
+            # print ("23-6-6 test print after updated updated_flatten_tensor min: ", torch.min(updated_flatten_tensor))
+            # print ("23-6-6 test print after updated updated_flatten_tensor norm: ", torch.norm(updated_flatten_tensor))
+            # print ("23-6-6 test print after updated updated_flatten_tensor shape: ", updated_flatten_tensor.shape)
+            # print ("23-6-6 test print after updated updated_flatten_tensor[:10]: \n", updated_flatten_tensor[:10])
             return updated_model_dict
         else:
             return FedMLAggOperator.agg(self.args, raw_client_model_or_grad_list)  # return averaged_params
