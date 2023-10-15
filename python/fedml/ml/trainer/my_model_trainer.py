@@ -43,6 +43,14 @@ class MyModelTrainer(ClientTrainer):
         epoch_loss = []
         for epoch in range(args.epochs):
             batch_loss = []
+
+            print("train_data type:", type(train_data))
+            print("train_data[0] type:", type(train_data[0]))
+            print("train_data[0][1] type:", type(train_data[0][1]))
+            print("train_data[0][1] value at 0:", train_data[0][1][0])
+            assert(0 == 1)
+
+
             for batch_idx, (x, labels) in enumerate(train_data):
                 x, labels = x.to(device), labels.to(device)
                 # logging.info("x.size = " + str(x.size()))

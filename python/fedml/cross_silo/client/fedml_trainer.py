@@ -48,22 +48,22 @@ class FedMLTrainer(object):
                 self.train_local = self.train_data_local_dict[client_index][self.args.proc_rank_in_silo]
             else:
                 self.train_local = self.train_data_local_dict[client_index]
-                print ("test 23-6-5 client_index: ", client_index)
-                print ("test 23-6-5 len(self.train_data_local_dict[client_index]): ", len(self.train_data_local_dict[client_index]))
+                # print ("test 23-6-5 client_index: ", client_index)
+                # print ("test 23-6-5 len(self.train_data_local_dict[client_index]): ", len(self.train_data_local_dict[client_index]))
         else:
             self.train_local = None
 
         if self.train_data_local_num_dict is not None:
             self.local_sample_number = self.train_data_local_num_dict[client_index]
-            print ("test 23-6-5 client_index: ", client_index)
-            print ("test 23-6-5 self.train_data_local_num_dict[client_index]: ", self.train_data_local_num_dict[client_index])
+            # print ("test 23-6-5 client_index: ", client_index)
+            # print ("test 23-6-5 self.train_data_local_num_dict[client_index]: ", self.train_data_local_num_dict[client_index])
         else:
             self.local_sample_number = 0
 
         if self.test_data_local_dict is not None:
             self.test_local = self.test_data_local_dict[client_index]
-            print ("test 23-6-5 client_index: ", client_index)
-            print ("test 23-6-5 len(self.test_data_local_dict[client_index]): ", len(self.test_data_local_dict[client_index]))
+            # print ("test 23-6-5 client_index: ", client_index)
+            # print ("test 23-6-5 len(self.test_data_local_dict[client_index]): ", len(self.test_data_local_dict[client_index]))
         else:
             self.test_local = None
 
@@ -73,19 +73,21 @@ class FedMLTrainer(object):
         self.args.round_idx = round_idx
         tick = time.time()
         
-        print ("test fedml fedml_trainer.py create returning weights and self.local_sample_number")
+        # print ("test fedml fedml_trainer.py create returning weights and self.local_sample_number")
         self.trainer.on_before_local_training(self.train_local, self.device, self.args)
         self.trainer.train(self.train_local, self.device, self.args)
         self.trainer.on_after_local_training(self.train_local, self.device, self.args)
 
         MLOpsProfilerEvent.log_to_wandb({"Train/Time": time.time() - tick, "round": round_idx})
         ### client 2: grads = self.trainer.get_model_grads()
-        if self.args.privacy_optimizer == 'zkp':  # pass gradients instead of weights
+        # if self.args.privacy_optimizer == 'zkp':  # pass gradients instead of weights
+        if True:  # always use c++ library
             ### baseline-1 -- client will send bounded grads anyways ...
-            if self.args.check_type == 'normal':  # no malicious, just pass weight updates without bounding
+            # if self.args.check_type == 'normal':  # no malicious, just pass weight updates without bounding
+            if False:  # never use original, always clip
                 grads = self.trainer.get_model_grads_origin()
             else:  # need checking (also no_check baseline), and bound
-                print ("23-6-5 test print malicious or honest self.client_index: ", self.client_index)
+                # print ("23-6-5 test print malicious or honest self.client_index: ", self.client_index)
                 if self.client_index < self.args.max_malicious_clients:  # malicious client
                     print ("malicious client")
                     grads = self.trainer.get_model_grads(self.args.malicious_bound)
@@ -95,7 +97,8 @@ class FedMLTrainer(object):
         else:  # non-zkp
             weights = self.trainer.get_model_params()
         # transform Tensor to list
-        if self.args.privacy_optimizer == 'zkp':
+        # if self.args.privacy_optimizer == 'zkp':
+        if True:  # always use c++ library
             return grads, self.local_sample_number
         else:
             return weights, self.local_sample_number

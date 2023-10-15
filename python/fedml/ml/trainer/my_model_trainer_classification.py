@@ -14,7 +14,7 @@ from collections import OrderedDict
 
 class ModelTrainerCLS(ClientTrainer):
     def get_model_params(self):
-        print ("test fedml get_model_params")
+        # print ("test fedml get_model_params")
         return self.model.cpu().state_dict()
 
     ### client 1: def get_model_grads(self)
@@ -38,14 +38,17 @@ class ModelTrainerCLS(ClientTrainer):
             else:
                 flatten_tensor = torch.cat((flatten_tensor, torch.flatten(self.model.model_weight_update_dict[param_key])))
         flatten_tensor_norm = torch.norm(flatten_tensor)
-        print ("23-6-3 test print get_model_grads_origin grad flatten_tensor[:10]: ", flatten_tensor[:10])
-        print ("23-6-3 test print get_model_grads_origin max: ", torch.max(flatten_tensor))
-        print ("23-6-3 test print get_model_grads_origin min: ", torch.min(flatten_tensor))
-        print ("23-6-3 test print get_model_grads_origin flatten_tensor shape: ", flatten_tensor.shape)
-        print ("23-6-3 test print get_model_grads_origin flatten_tensor_norm: ", flatten_tensor_norm)
+        # print ("23-6-3 test print get_model_grads_origin grad flatten_tensor[:10]: ", flatten_tensor[:10])
+        # print ("23-6-3 test print get_model_grads_origin max: ", torch.max(flatten_tensor))
+        # print ("23-6-3 test print get_model_grads_origin min: ", torch.min(flatten_tensor))
+        # print ("23-6-3 test print get_model_grads_origin flatten_tensor shape: ", flatten_tensor.shape)
+        # print ("23-6-3 test print get_model_grads_origin flatten_tensor_norm: ", flatten_tensor_norm)
         return self.model.model_weight_update_dict
 
     def get_model_grads(self, param_bound):
+        print("In get_model_grads function!!")
+        print("self.args.attack_type:", self.args.attack_type)
+
         eps=1e-8
         model_grads_dict = OrderedDict()
         flatten_tensor = None
@@ -56,26 +59,38 @@ class ModelTrainerCLS(ClientTrainer):
             else:
                 flatten_tensor = torch.cat((flatten_tensor, torch.flatten(self.model.model_weight_update_dict[param_key])))
         flatten_tensor_norm = torch.norm(flatten_tensor)
-        print ("23-6-2 test print param_bound: ", param_bound)
-        print ("23-6-2 test print before scale grad flatten_tensor[:10]: ", flatten_tensor[:10])
-        print ("23-6-2 test print max: ", torch.max(flatten_tensor))
-        print ("23-6-2 test print min: ", torch.min(flatten_tensor))
-        print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
-        print ("23-6-2 test print flatten_tensor_norm: ", flatten_tensor_norm)
+        # print ("23-6-2 test print param_bound: ", param_bound)
+        # print ("23-6-2 test print before scale grad flatten_tensor[:10]: ", flatten_tensor[:10])
+        # print ("23-6-2 test print max: ", torch.max(flatten_tensor))
+        # print ("23-6-2 test print min: ", torch.min(flatten_tensor))
+        # print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
+        # print ("23-6-2 test print flatten_tensor_norm: ", flatten_tensor_norm)
         # for param_name, f in self.model.named_parameters():
         for param_key in self.model.model_weight_update_dict.keys():
-            if self.args.dataset == 'cifar10' and self.args.check_type == 'no_check' and (('running_mean' in param_key) or ('running_var' in param_key) or ('num_batches_tracked' in param_key)):
-                print ("not scaling weight_update: " + param_key)
+            print("param_key:", param_key)
+            if self.args.dataset == 'cifar10' and (('running_mean' in param_key) or ('running_var' in param_key) or ('num_batches_tracked' in param_key)):
+                # print ("not scaling weight_update: " + param_key)
                 # if 'num_batches_tracked' in param_key:
                 #     print ("weight_update norm: ", self.model.model_weight_update_dict[param_key])
                 # else:
                 #     print ("weight_update norm: ", torch.norm(self.model.model_weight_update_dict[param_key]))
+                # print ("self.model.model_weight_update_dict['num_batches_tracked']: ", self.model.model_weight_update_dict['num_batches_tracked'])
                 model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key] * (self.args.norm_bound / (eps + flatten_tensor_norm))
+                # if self.args.attack_type == 'noise':
+                #     if 'running_mean' in param_key:
+                #         print("adding noise to running mean!!")
+                #         model_grads_dict[param_key] += torch.normal(torch.zeros_like(model_grads_dict[param_key]), self.args.noise_std * 21.2132034 * torch.ones_like(model_grads_dict[param_key]))
+
             else:
                 # if 'weight' in param_key:
                 #     print ('scaling weight_update: ' + param_key)
                 #     print ("weight_update norm: ", torch.norm(self.model.model_weight_update_dict[param_key]))
                 model_grads_dict[param_key] = self.model.model_weight_update_dict[param_key] * (param_bound / (eps + flatten_tensor_norm))
+                print("normalized grad!!")
+                if self.args.attack_type == 'noise':
+                    print("adding noise to variables!!!!")
+                    print("noise std: ", self.args.noise_std)
+                    model_grads_dict[param_key] += torch.normal(torch.zeros_like(model_grads_dict[param_key]), self.args.noise_std * torch.ones_like(model_grads_dict[param_key]))
         return model_grads_dict
 
     def set_model_params(self, model_parameters):
@@ -92,7 +107,7 @@ class ModelTrainerCLS(ClientTrainer):
 
         # if args.using_gpu == 'true':
         model.to(device)
-        print ("test fedml model.train()")
+        # print ("test fedml model.train()")
         model.train()
 
         # train and update
@@ -109,7 +124,7 @@ class ModelTrainerCLS(ClientTrainer):
                 weight_decay=args.weight_decay,
                 amsgrad=True,
             )
-        print ("optimizer: ", optimizer)
+        # print ("optimizer: ", optimizer)
 
         # model_origin_param_dict = OrderedDict()
         # for param_name, f in self.model.named_parameters():
@@ -117,52 +132,60 @@ class ModelTrainerCLS(ClientTrainer):
 
         epoch_loss = []
         ### client -1: print model before updating
-        print ("before client train epochs")
+        # print ("before client train epochs")
         for param_name, f in model.named_parameters():
             if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
-                print ('param name: ', param_name)
-                print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
+                # print ('param name: ', param_name)
+                # print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
+                pass
         ### client 0: I only need one step?? not one epoch!!!
         for epoch in range(args.epochs):
             batch_loss = []
             # print ("23-6-5 test print len(train_data): ", len(train_data))
             for batch_idx, (x, labels) in enumerate(train_data):
+
+                if self.args.attack_type in ['change_label', 'mp_pd', 'mp_nt']:
+                    mask1 = (labels == self.args.label_1)
+                    mask2 = (labels == self.args.label_2)
+                    labels[mask1] = self.args.label_2
+                    labels[mask2] = self.args.label_1
+
                 # print ("training batch_idx: ", batch_idx)
                 if batch_idx % 30 == 0:
                     print ("training batch_idx: ", batch_idx)
                 x, labels = x.to(device), labels.to(device)
-                
-                if batch_idx < 0:
-                    print ("x shape: ", x.shape)
-                    print ("x norm: ", torch.norm(x))
+
+                # if batch_idx < 0:
+                #     print ("x shape: ", x.shape)
+                #     print ("x norm: ", torch.norm(x))
                 # print ("labels: ", labels)
                 model.zero_grad()
                 log_probs = model(x)
                 labels = labels.long()
                 loss = criterion(log_probs, labels)  # pylint: disable=E1102
                 loss.backward()
-                if batch_idx < 0:
-                    print ("before optimizer step + after loss.backward()")
-                    print ("device: ", device)
-                    for param_name, param_data in model.named_parameters():
-                        if param_name == 'conv2d_1.weight' or param_name == 'conv2d_2.weight':
-                            print ("param_name: ", param_name)
-                            print ("param_data.data size: ", param_data.data.size())
-                            print ("param_data norm: ", torch.norm(param_data.data))
-                            # print ("param_data: ", param_data)
-                            if param_data.grad is not None:
-                                print ("param_grad norm: ", torch.norm(param_data.grad.data))
+                # if batch_idx < 0:
+                #     print ("before optimizer step + after loss.backward()")
+                #     print ("device: ", device)
+                #     for param_name, param_data in model.named_parameters():
+                #         if param_name == 'conv2d_1.weight' or param_name == 'conv2d_2.weight':
+                #             print ("param_name: ", param_name)
+                #             print ("param_data.data size: ", param_data.data.size())
+                #             print ("param_data norm: ", torch.norm(param_data.data))
+                #             # print ("param_data: ", param_data)
+                #             if param_data.grad is not None:
+                #                 print ("param_grad norm: ", torch.norm(param_data.grad.data))
                 optimizer.step()
-                if batch_idx < 0:
-                    print ("after optimizer step")
-                    for param_name, param_data in model.named_parameters():
-                        if param_name == 'conv2d_1.weight' or param_name == 'conv2d_2.weight':
-                            print ("param_name: ", param_name)
-                            print ("param_data.data size: ", param_data.data.size())
-                            print ("param_data norm: ", torch.norm(param_data.data))
-                            # print ("param_data: ", param_data)
-                            if param_data.grad is not None:
-                                print ("param_grad norm: ", torch.norm(param_data.grad.data))
+                # if batch_idx < 0:
+                #     print ("after optimizer step")
+                #     for param_name, param_data in model.named_parameters():
+                #         if param_name == 'conv2d_1.weight' or param_name == 'conv2d_2.weight':
+                #             print ("param_name: ", param_name)
+                #             print ("param_data.data size: ", param_data.data.size())
+                #             print ("param_data norm: ", torch.norm(param_data.data))
+                #             # print ("param_data: ", param_data)
+                #             if param_data.grad is not None:
+                #                 print ("param_grad norm: ", torch.norm(param_data.grad.data))
 
                 # Uncommet this following line to avoid nan loss
                 # torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
@@ -177,7 +200,7 @@ class ModelTrainerCLS(ClientTrainer):
                 #     )
                 # )
                 if batch_idx < 0:
-                    print ("batch_idx check weight update: ", batch_idx)
+                    # print ("batch_idx check weight update: ", batch_idx)
                     model_intermedia_param_dict = model.cpu().state_dict()
                     model_batch_update_param_dict = OrderedDict()
                     for param_key in model_intermedia_param_dict.keys():
@@ -189,36 +212,36 @@ class ModelTrainerCLS(ClientTrainer):
                         else:
                             flatten_tensor = torch.cat((flatten_tensor, torch.flatten(model_batch_update_param_dict[param_key])))
                     flatten_tensor_norm = torch.norm(flatten_tensor)
-                    print ("23-6-3 test inter batch flatten_tensor[:10]: ", flatten_tensor[:10])
-                    print ("23-6-3 test inter max: ", torch.max(flatten_tensor))
-                    print ("23-6-3 test inter batch min: ", torch.min(flatten_tensor))
-                    print ("23-6-3 test inter batch flatten_tensor shape: ", flatten_tensor.shape)
-                    print ("23-6-3 test inter batch flatten_tensor_norm: ", flatten_tensor_norm)
-                    
-                    print ("conv2d_1.weight check")
+                    # print ("23-6-3 test inter batch flatten_tensor[:10]: ", flatten_tensor[:10])
+                    # print ("23-6-3 test inter max: ", torch.max(flatten_tensor))
+                    # print ("23-6-3 test inter batch min: ", torch.min(flatten_tensor))
+                    # print ("23-6-3 test inter batch flatten_tensor shape: ", flatten_tensor.shape)
+                    # print ("23-6-3 test inter batch flatten_tensor_norm: ", flatten_tensor_norm)
+
+                    # print ("conv2d_1.weight check")
                     conv2d_1_weight_update = model_batch_update_param_dict['conv2d_1.weight']
-                    print ("23-6-3 test conv2d_1_weight_update max: ", torch.max(conv2d_1_weight_update))
-                    print ("23-6-3 test conv2d_1_weight_update batch min: ", torch.min(conv2d_1_weight_update))
-                    print ("23-6-3 test conv2d_1_weight_update batch flatten_tensor shape: ", conv2d_1_weight_update.shape)
-                    print ("23-6-3 test conv2d_1_weight_update inter batch flatten_tensor_norm: ", torch.norm(conv2d_1_weight_update))
-                    print ("23-6-3 test conv2d_1_weight_update model_intermedia_param_dict['conv2d_1.weight'] norm: ", torch.norm(model_intermedia_param_dict['conv2d_1.weight']))
-                    print ("23-6-3 test conv2d_1_weight_update model_origin_param_dict['conv2d_1.weight'] norm: ", torch.norm(model_origin_param_dict['conv2d_1.weight']))
-                    print ("23-6-3 test conv2d_1_weight_update model_intermedia_param_dict['conv2d_1.weight']-model_origin_param_dict['conv2d_1.weight']  norm: ", torch.norm(model_intermedia_param_dict['conv2d_1.weight']-model_origin_param_dict['conv2d_1.weight']))
+                    # print ("23-6-3 test conv2d_1_weight_update max: ", torch.max(conv2d_1_weight_update))
+                    # print ("23-6-3 test conv2d_1_weight_update batch min: ", torch.min(conv2d_1_weight_update))
+                    # print ("23-6-3 test conv2d_1_weight_update batch flatten_tensor shape: ", conv2d_1_weight_update.shape)
+                    # print ("23-6-3 test conv2d_1_weight_update inter batch flatten_tensor_norm: ", torch.norm(conv2d_1_weight_update))
+                    # print ("23-6-3 test conv2d_1_weight_update model_intermedia_param_dict['conv2d_1.weight'] norm: ", torch.norm(model_intermedia_param_dict['conv2d_1.weight']))
+                    # print ("23-6-3 test conv2d_1_weight_update model_origin_param_dict['conv2d_1.weight'] norm: ", torch.norm(model_origin_param_dict['conv2d_1.weight']))
+                    # print ("23-6-3 test conv2d_1_weight_update model_intermedia_param_dict['conv2d_1.weight']-model_origin_param_dict['conv2d_1.weight']  norm: ", torch.norm(model_intermedia_param_dict['conv2d_1.weight']-model_origin_param_dict['conv2d_1.weight']))
 
 
- 
-                    print ("conv2d_2.weight check")
+
+                    # print ("conv2d_2.weight check")
                     conv2d_2_weight_update = model_batch_update_param_dict['conv2d_2.weight']
-                    print ("23-6-3 test conv2d_2_weight_update max: ", torch.max(conv2d_2_weight_update))
-                    print ("23-6-3 test conv2d_2_weight_update batch min: ", torch.min(conv2d_2_weight_update))
-                    print ("23-6-3 test conv2d_2_weight_update batch flatten_tensor shape: ", conv2d_2_weight_update.shape)
-                    print ("23-6-3 test conv2d_2_weight_update inter batch flatten_tensor_norm: ", torch.norm(conv2d_2_weight_update))
-                    print ("23-6-3 test conv2d_2_weight_update model_intermedia_param_dict['conv2d_2.weight'] norm: ", torch.norm(model_intermedia_param_dict['conv2d_2.weight']))
-                    print ("23-6-3 test conv2d_2_weight_update model_origin_param_dict['conv2d_2.weight'] norm: ", torch.norm(model_origin_param_dict['conv2d_2.weight']))
-                    print ("23-6-3 test conv2d_2_weight_update model_intermedia_param_dict['conv2d_2.weight']-model_origin_param_dict['conv2d_2.weight']  norm: ", torch.norm(model_intermedia_param_dict['conv2d_2.weight']-model_origin_param_dict['conv2d_2.weight']))
+                    # print ("23-6-3 test conv2d_2_weight_update max: ", torch.max(conv2d_2_weight_update))
+                    # print ("23-6-3 test conv2d_2_weight_update batch min: ", torch.min(conv2d_2_weight_update))
+                    # print ("23-6-3 test conv2d_2_weight_update batch flatten_tensor shape: ", conv2d_2_weight_update.shape)
+                    # print ("23-6-3 test conv2d_2_weight_update inter batch flatten_tensor_norm: ", torch.norm(conv2d_2_weight_update))
+                    # print ("23-6-3 test conv2d_2_weight_update model_intermedia_param_dict['conv2d_2.weight'] norm: ", torch.norm(model_intermedia_param_dict['conv2d_2.weight']))
+                    # print ("23-6-3 test conv2d_2_weight_update model_origin_param_dict['conv2d_2.weight'] norm: ", torch.norm(model_origin_param_dict['conv2d_2.weight']))
+                    # print ("23-6-3 test conv2d_2_weight_update model_intermedia_param_dict['conv2d_2.weight']-model_origin_param_dict['conv2d_2.weight']  norm: ", torch.norm(model_intermedia_param_dict['conv2d_2.weight']-model_origin_param_dict['conv2d_2.weight']))
 
                     model.to(device)
-                    
+
                 batch_loss.append(loss.item())
             if len(batch_loss) == 0:
                 epoch_loss.append(0.0)
@@ -230,11 +253,11 @@ class ModelTrainerCLS(ClientTrainer):
                 )
             )
 
-        print ("after client train epochs")
-        for param_name, f in model.named_parameters():
-            if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
-                print ('param name: ', param_name)
-                print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
+        # print ("after client train epochs")
+        # for param_name, f in model.named_parameters():
+        #     if 'weight' in param_name and 'conv1' in param_name and 'layer1' in param_name:
+        #         print ('param name: ', param_name)
+        #         print ('param norm: ', np.linalg.norm(f.data.cpu().numpy()))
         # weight update dictionary
         model_updated_param_dict = model.cpu().state_dict()
         # model_updated_param_dict = OrderedDict()

@@ -24,20 +24,20 @@ train_args:
   privacy_optimizer: "zkp"  # "non_zkp"
   # honest_bound: 1
   norm_bound: 450.0  # also used in zkp_prob, in honest_bound
-  malicious_bound: -675.0 # 450, -675.0, 4500. 
-  check_type: "strict"  # ("zkp_prob" or "normal") "strict" or "no_check" (client bound but server no check) or "normal" (client no bound, server no check--benchmark 0.73+)
+  malicious_bound: 450.0 # 450, -675.0, 4500. 
+  check_type: "no_check"  # ("zkp_prob" or "normal") "strict" or "no_check" (client bound but server no check) or "normal" (client no bound, server no check--benchmark 0.73+)
   # malicious_ratio: 0
   # chi_bound: 1
   # norm_bound: 2  # also used in zkp_prob
   ## begin for zkp_prob
   max_malicious_clients: 2  # 16 clients
-  num_blinds_per_weight_key: 2
+  num_blinds_per_group_element: 2
   random_normal_bit_shifter: 24
   # linear_comb_bound_bits: 44
   # max_bound_sq_bits: 100
   num_norm_bound_samples: 1000
-  standard_deviation_factor: 15.69132269
-  proto_type: 'int'  # 'float'
+  # standard_deviation_factor: 15.69132269
+  proto_type: 'float'  # 'float'
   weight_bits: 24
   ### end for zkp_prob
   client_id_list:
@@ -49,6 +49,16 @@ train_args:
   client_optimizer: adam
   learning_rate: 0.001
   weight_decay: 0.0001
+
+  attack_type: 'noise' # 'noise', 'change_label', 'mp_pd', 'mp_nt'
+  noise_std: 0.450 # if attack_type == 'noise'
+  label_1: 5 # if attack_type is in ['change_label', 'mp_pd', 'mp_nt']
+  label_2: 9 # if attack_type is in ['change_label', 'mp_pd', 'mp_nt']
+  ignore_ratio: 0.01 # if attack_type == 'mp_nt'
+
+  check_pred: 'cosine' # 'l2norm', 'sphere', 'cosine', 'zeno'
+  sphere_norm_bound: 0.5 # half of norm_bound, used if check_pred == 'sphere'
+  # more args if zeno
 
 validation_args:
   frequency_of_the_test: 1

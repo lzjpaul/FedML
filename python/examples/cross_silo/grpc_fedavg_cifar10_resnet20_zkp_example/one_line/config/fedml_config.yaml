@@ -23,9 +23,9 @@ train_args:
   federated_optimizer: "FedAvg"
   privacy_optimizer: "zkp"  # "non_zkp"
   # honest_bound: 1
-  norm_bound: 953  # also used in zkp_prob, in honest_bound
-  malicious_bound: 953
-  check_type: "normal"  # ("zkp_prob" or "normal") "strict" or "no_check" (client bound but server no check) or "normal" (client no bound, server no check--benchmark 0.73+)
+  norm_bound: 450.0  # also used in zkp_prob, in honest_bound
+  malicious_bound: 4500.0
+  check_type: "strict"  # ("zkp_prob" or "normal") "strict" or "no_check" (client bound but server no check) or "normal" (client no bound, server no check--benchmark 0.73+)
   # malicious_ratio: 0
   # chi_bound: 1
   # norm_bound: 2  # also used in zkp_prob
@@ -43,7 +43,7 @@ train_args:
   client_id_list:
   client_num_in_total: 2
   client_num_per_round: 2
-  comm_round: 2
+  comm_round: 5
   epochs: 1
   batch_size: 128
   client_optimizer: sgd

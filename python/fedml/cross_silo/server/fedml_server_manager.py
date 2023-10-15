@@ -38,16 +38,33 @@ class FedMLServerManager(FedMLCommManager):
         self.data_silo_index_list = None
 
         # zkp_prob: initialize clients + protocol_type needes category
-        if args.privacy_optimizer == "zkp" and args.check_type == "zkp_prob":
+        # if args.privacy_optimizer == "zkp" and args.check_type == "zkp_prob":
+        if True:  # always use c++ library to simulate
             if args.proto_type == 'int':
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_INT
             else:  # 'float'
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_FLOAT
-            args.linear_comb_bound_bits = args.weight_bits + args.random_normal_bit_shifter + 4
-            args.max_bound_sq_bits = 2 * (args.weight_bits + args.random_normal_bit_shifter) + 20
-            self.server_instance = di_zkp_interface.ServerInterface(args.client_num_in_total, args.max_malicious_clients, args.dim, 
-                    args.num_blinds_per_weight_key, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples, 
-                    args.linear_comb_bound_bits, args.max_bound_sq_bits, False, protocol_type)
+            args.inner_prod_bound_bits = args.weight_bits + args.random_normal_bit_shifter + 4
+            args.max_bound_sq_bits = 2 * args.inner_prod_bound_bits + 100
+
+            if args.check_pred == 'l2norm':
+                self.server_instance = di_zkp_interface.ServerInterface(args.client_num_in_total, args.max_malicious_clients, args.dim,
+                    args.num_blinds_per_group_element, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples,
+                    args.inner_prod_bound_bits, args.max_bound_sq_bits, di_zkp_interface.CHECK_TYPE_L2NORM, False, protocol_type)
+            elif args.check_pred == 'sphere':
+                self.server_instance = di_zkp_interface.ServerInterface(args.client_num_in_total, args.max_malicious_clients, args.dim,
+                    args.num_blinds_per_group_element, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples,
+                    args.inner_prod_bound_bits, args.max_bound_sq_bits, di_zkp_interface.CHECK_TYPE_SPHERE, False, protocol_type)
+            elif args.check_pred == 'cosine':
+                self.server_instance = di_zkp_interface.ServerInterface(args.client_num_in_total, args.max_malicious_clients, args.dim,
+                    args.num_blinds_per_group_element, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples,
+                    args.inner_prod_bound_bits, args.max_bound_sq_bits, di_zkp_interface.CHECK_TYPE_COSINE_SIM, False, protocol_type)
+            elif args.check_pred == 'zeno':
+                self.server_instance = di_zkp_interface.ServerInterface(args.client_num_in_total, args.max_malicious_clients, args.dim,
+                    args.num_blinds_per_group_element, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples,
+                    args.inner_prod_bound_bits, args.max_bound_sq_bits, di_zkp_interface.CHECK_TYPE_ZENO, False, protocol_type)
+            else:
+                raise ValueError("incorrect check pred!!!")
 
     def run(self):
         super().run()
@@ -65,7 +82,7 @@ class FedMLServerManager(FedMLCommManager):
                 global_model_url, global_model_key
             )
             client_idx_in_this_round += 1
-        print ("test fedml send_init_msg client_idx_in_this_round: \n", client_idx_in_this_round)
+        # print ("test fedml send_init_msg client_idx_in_this_round: \n", client_idx_in_this_round)
 
         mlops.event("server.wait", event_started=True, event_value=str(self.args.round_idx))
 
@@ -115,7 +132,7 @@ class FedMLServerManager(FedMLCommManager):
 
             # check client status in case that some clients start earlier than the server
             client_idx_in_this_round = 0
-            print ("test fedml handle_message_connection_ready self.client_id_list_in_this_round: \n", self.client_id_list_in_this_round)
+            # print ("test fedml handle_message_connection_ready self.client_id_list_in_this_round: \n", self.client_id_list_in_this_round)
             for client_id in self.client_id_list_in_this_round:
                 try:
                     self.send_message_check_client_status(
@@ -125,7 +142,7 @@ class FedMLServerManager(FedMLCommManager):
                 except Exception as e:
                     logging.info("Connection not ready for client" + str(client_id))
                 client_idx_in_this_round += 1
-            print ("test fedml handle_message_connection_ready client_idx_in_this_round: \n", client_idx_in_this_round)
+            # print ("test fedml handle_message_connection_ready client_idx_in_this_round: \n", client_idx_in_this_round)
 
     def process_online_status(self, client_status, msg_params):
         self.client_online_mapping[str(msg_params.get_sender_id())] = True
@@ -180,25 +197,45 @@ class FedMLServerManager(FedMLCommManager):
         mlops.event("comm_c2s", event_started=False, event_value=str(self.args.round_idx), event_edge_id=sender_id)
 
         ### zkp_prob: initialize server each iteration! 
-        if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
-            self.server_instance.initialize_new_iteration(self.args.norm_bound, self.args.standard_deviation_factor)  # initialize server each iteration!
-            print("each new iteration self.server_instance.dim = " + str(self.server_instance.dim))
-            print("each new iteration self.server_instance.weight_bits = " + str(self.server_instance.weight_bits))
+        # if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
+        if True:  # always use c++ library to simulate
+            if self.args.check_pred == 'l2norm':
+                check_param = di_zkp_interface.CheckParamFloat(di_zkp_interface.CHECK_TYPE_L2NORM)
+                check_param.l2_param.bound = self.args.norm_bound
+            elif self.args.check_pred == 'sphere':
+                check_param = di_zkp_interface.CheckParamFloat(di_zkp_interface.CHECK_TYPE_SPHERE)
+                check_param.sphere_param.bound = self.args.sphere_norm_bound
+                # center is normalized last model update, hacked by c++ library
+            elif self.args.check_pred == 'cosine':
+                check_param = di_zkp_interface.CheckParamFloat(di_zkp_interface.CHECK_TYPE_COSINE_SIM)
+                check_param.cosine_param.bound = self.args.norm_bound
+                # pivot and cosine bound are hacked by c++ library
+            elif self.args.check_pred == 'zeno':
+                check_param = di_zkp_interface.CheckParamFloat(di_zkp_interface.CHECK_TYPE_ZENO)
+                check_param.zeno_param.rho = self.args.rho
+                check_param.zeno_param.gamma = self.args.gamma
+                check_param.zeno_param.eps = self.args.eps
+                # pivot hacked by c++ library
+
+            self.server_instance.initialize_new_iteration(check_param)  # initialize server each iteration!
+            # print("each new iteration self.server_instance.dim = " + str(self.server_instance.dim))
+            # print("each new iteration self.server_instance.weight_bits = " + str(self.server_instance.weight_bits))
 
             client_message = msg_params.get('clientmessage')  # a long string
             grad_shapes = msg_params.get('gradshapes')
             local_sample_number = msg_params.get(MyMessage.MSG_ARG_KEY_NUM_SAMPLES)
 
-            print ("test fedml -- before add_local_trained_result_zkp_prob, in or not??")
+            # print("test fedml -- before add_local_trained_result_zkp_prob, in or not??")
             self.aggregator.add_local_trained_result_zkp_prob(
                 self.client_real_ids.index(sender_id), client_message, grad_shapes, local_sample_number
             )
+
 
         else:
             model_params = msg_params.get(MyMessage.MSG_ARG_KEY_MODEL_PARAMS)
             local_sample_number = msg_params.get(MyMessage.MSG_ARG_KEY_NUM_SAMPLES)
 
-            print ("test fedml -- before add_local_trained_result, in or not??")
+            # print ("test fedml -- before add_local_trained_result, in or not??")
             self.aggregator.add_local_trained_result(
                 self.client_real_ids.index(sender_id), model_params, local_sample_number
             )
@@ -209,14 +246,15 @@ class FedMLServerManager(FedMLCommManager):
             mlops.event("server.wait", event_started=False, event_value=str(self.args.round_idx))
             mlops.event("server.agg_and_eval", event_started=True, event_value=str(self.args.round_idx))
             tick = time.time()
-            print ("test fedml fedml_server_manager.py handle_message_receive_model_from_client self.aggregator.aggregate()")
+            # print ("test fedml fedml_server_manager.py handle_message_receive_model_from_client self.aggregator.aggregate()")
 
             # test before aggregate() --> can be commented
             # print ("23-5-29 test print test results before aggragate() and set_model_params")
             # self.aggregator.test_on_server_for_all_clients(self.args.round_idx)
 
             # server 3-1: aggregator
-            if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
+            # if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
+            if True:  # always use c++ library
                 global_model_params, model_list, model_list_idxes = self.aggregator.aggregate_zkp_prob(self.server_instance)
             else:
                 global_model_params, model_list, model_list_idxes = self.aggregator.aggregate()
@@ -227,7 +265,7 @@ class FedMLServerManager(FedMLCommManager):
 
             logging.info("self.client_id_list_in_this_round = {}".format(self.client_id_list_in_this_round))
             new_client_id_list_in_this_round = []
-            print ("test fedml handle_message_receive_model_from_client model_list_idxes: \n", model_list_idxes)
+            # print ("test fedml handle_message_receive_model_from_client model_list_idxes: \n", model_list_idxes)
             for client_idx in model_list_idxes:
                 new_client_id_list_in_this_round.append(self.client_id_list_in_this_round[client_idx])
             logging.info("new_client_id_list_in_this_round = {}".format(new_client_id_list_in_this_round))
@@ -259,30 +297,30 @@ class FedMLServerManager(FedMLCommManager):
             client_idx_in_this_round = 0
             global_model_url = None
             global_model_key = None
-            print ("test fedml handle_message_receive_model_from_client self.client_id_list_in_this_round: \n", self.client_id_list_in_this_round)
-            print ("test fedml handle_message_receive_model_from_client self.data_silo_index_list: \n", self.data_silo_index_list)
-            print ("23-5-23 test print handle_message_receive_model_from_client global_model_params type: ", type(global_model_params))
+            # print ("test fedml handle_message_receive_model_from_client self.client_id_list_in_this_round: \n", self.client_id_list_in_this_round)
+            # print ("test fedml handle_message_receive_model_from_client self.data_silo_index_list: \n", self.data_silo_index_list)
+            # print ("23-5-23 test print handle_message_receive_model_from_client global_model_params type: ", type(global_model_params))
             # print ("test fedml handle_message_receive_model_from_client global_model_params: \n", global_model_params)
             ## server 3-3: send_message_sync_model_to_client
             for receiver_id in self.client_id_list_in_this_round:
                 client_index = self.data_silo_index_list[client_idx_in_this_round]
                 if type(global_model_params) is dict:
-                    print ("23-5-23 test print handle_message_receive_model_from_client send_diff_sync")
+                    # print ("23-5-23 test print handle_message_receive_model_from_client send_diff_sync")
                     # compatible with the old version that, user did not give {-1 : global_parms_dict}
                     global_model_url, global_model_key = self.send_message_diff_sync_model_to_client(
                         receiver_id, global_model_params[client_index], client_index
                     )
                 else:
-                    print ("23-5-23 test print handle_message_receive_model_from_client before send_sync model")
-                    print ("23-5-23 test print handle_message_receive_model_from_client global_model_url: \n", global_model_url)
-                    print ("23-5-23 test print handle_message_receive_model_from_client global_model_key: \n", global_model_key) 
+                    # print ("23-5-23 test print handle_message_receive_model_from_client before send_sync model")
+                    # print ("23-5-23 test print handle_message_receive_model_from_client global_model_url: \n", global_model_url)
+                    # print ("23-5-23 test print handle_message_receive_model_from_client global_model_key: \n", global_model_key)
                     global_model_url, global_model_key = self.send_message_sync_model_to_client(
                         receiver_id, global_model_params, client_index, global_model_url, global_model_key
                     )
-                print ("test fedml handle_message_receive_model_from_client global_model_url: \n", global_model_url)
-                print ("test fedml handle_message_receive_model_from_client global_model_key: \n", global_model_key)
+                # print ("test fedml handle_message_receive_model_from_client global_model_url: \n", global_model_url)
+                # print ("test fedml handle_message_receive_model_from_client global_model_key: \n", global_model_key)
                 client_idx_in_this_round += 1
-            print ("test fedml handle_message_receive_model_from_client client_idx_in_this_round: \n", client_idx_in_this_round)
+            # print ("test fedml handle_message_receive_model_from_client client_idx_in_this_round: \n", client_idx_in_this_round)
 
             # if user give {-1 : global_parms_dict}, then record global_model url separately
             if type(global_model_params) is dict and (-1 in global_model_params.keys()):
@@ -349,8 +387,8 @@ class FedMLServerManager(FedMLCommManager):
             message.add_params(MyMessage.MSG_ARG_KEY_MODEL_PARAMS_KEY, global_model_key)
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_INDEX, str(client_index))
         message.add_params(MyMessage.MSG_ARG_KEY_CLIENT_OS, "PythonClient")
-        print ("test sync model message.get_type(): \n", message.get_type())
-        # print ("comment-5-16 test sync model message.to_string(): \n", message.to_string())
+        # print ("test sync model message.get_type(): \n", message.get_type())
+        # print ("comment-5 -16 test sync model message.to_string(): \n", message.to_string())
         # try:
         #     print ("comment-5-16 test sync model message.to_json(): \n", message.to_json())
         # except:

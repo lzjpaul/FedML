@@ -40,19 +40,44 @@ class ClientMasterManager(FedMLCommManager):
         self.is_inited = False
 
         # zkp_prob: initialize clients + protocol_type needes category
-        if args.privacy_optimizer == "zkp" and args.check_type == "zkp_prob":
+        # if args.privacy_optimizer == "zkp" and args.check_type == "zkp_prob":
+        if True:  # always use c++ library
             if args.proto_type == 'int':
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_INT
             else:  # 'float'
                 protocol_type = di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_FLOAT
-            args.linear_comb_bound_bits = args.weight_bits + args.random_normal_bit_shifter + 4
-            args.max_bound_sq_bits = 2 * (args.weight_bits + args.random_normal_bit_shifter) + 20
-            self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim, 
-                    args.num_blinds_per_weight_key, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples, 
-                    args.linear_comb_bound_bits, args.max_bound_sq_bits, rank, False, protocol_type)
-            print ("init client_instance rank: ", rank)
-            print ("init client_instance.dim = " + str(self.client_instance.dim))
-            print ("init client_instance.client_id = " + str(self.client_instance.client_id))
+            args.inner_prod_bound_bits = args.weight_bits + args.random_normal_bit_shifter + 4
+            args.max_bound_sq_bits = 2 * args.inner_prod_bound_bits + 100
+
+            if args.check_pred == 'l2norm':
+                self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim,
+                    args.num_blinds_per_group_element, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples,
+                    args.inner_prod_bound_bits, args.max_bound_sq_bits, di_zkp_interface.CHECK_TYPE_L2NORM, rank,
+                    di_zkp_interface.VecSignPubKeys(), di_zkp_interface.SignPrvKey(),
+                    False, protocol_type)
+            elif args.check_pred == 'sphere':
+                self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim,
+                    args.num_blinds_per_group_element, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples,
+                    args.inner_prod_bound_bits, args.max_bound_sq_bits, di_zkp_interface.CHECK_TYPE_SPHERE, rank,
+                    di_zkp_interface.VecSignPubKeys(), di_zkp_interface.SignPrvKey(),
+                    False, protocol_type)
+            elif args.check_pred == 'cosine':
+                self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim,
+                    args.num_blinds_per_group_element, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples,
+                    args.inner_prod_bound_bits, args.max_bound_sq_bits, di_zkp_interface.CHECK_TYPE_COSINE_SIM, rank,
+                    di_zkp_interface.VecSignPubKeys(), di_zkp_interface.SignPrvKey(),
+                    False, protocol_type)
+            elif args.check_pred == 'zeno':
+                self.client_instance = di_zkp_interface.ClientInterface(args.client_num_in_total, args.max_malicious_clients, args.dim,
+                    args.num_blinds_per_group_element, args.weight_bits, args.random_normal_bit_shifter, args.num_norm_bound_samples,
+                    args.inner_prod_bound_bits, args.max_bound_sq_bits, di_zkp_interface.CHECK_TYPE_ZENO, rank,
+                    di_zkp_interface.VecSignPubKeys(), di_zkp_interface.SignPrvKey(),
+                    False, protocol_type)
+            else:
+                raise ValueError("Incorrect check predicate!!!")
+            # print ("init client_instance rank: ", rank)
+            # print ("init client_instance.dim = " + str(self.client_instance.dim))
+            # print ("init client_instance.client_id = " + str(self.client_instance.client_id))
 
     def register_message_receive_handlers(self):
         self.register_message_receive_handler(
@@ -201,7 +226,8 @@ class ClientMasterManager(FedMLCommManager):
         mlops.event("train", event_started=True, event_value=str(self.round_idx))
 
         ### client 4-1: judge zkp, if yes, grads, local_sample_num = self.trainer_dist_adapter.train(self.round_idx)
-        if self.args.privacy_optimizer == 'zkp':
+        # if self.args.privacy_optimizer == 'zkp':
+        if True:  # always use c++ library
             grads, local_sample_num = self.trainer_dist_adapter.train(self.round_idx)
         else:
             weights, local_sample_num = self.trainer_dist_adapter.train(self.round_idx)
@@ -221,13 +247,14 @@ class ClientMasterManager(FedMLCommManager):
                 flatten_tensor = torch.flatten(grads[k])
             else:
                 flatten_tensor = torch.cat((flatten_tensor, torch.flatten(grads[k])))
-        print ("23-6-2 test print after scale and before client encode flatten_tensor norm: ", torch.norm(flatten_tensor))
-        print ("23-6-2 test print max: ", torch.max(flatten_tensor))
-        print ("23-6-2 test print min: ", torch.min(flatten_tensor))
-        print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
-        print ("23-6-2 test flatten_tensor[:10]: ", flatten_tensor[:10])
+        # print ("23-6-2 test print after scale and before client encode flatten_tensor norm: ", torch.norm(flatten_tensor))
+        # print ("23-6-2 test print max: ", torch.max(flatten_tensor))
+        # print ("23-6-2 test print min: ", torch.min(flatten_tensor))
+        # print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
+        # print ("23-6-2 test flatten_tensor[:10]: ", flatten_tensor[:10])
         ### zkp_prob: expand grads (after bounded)
-        if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
+        # if self.args.privacy_optimizer == "zkp" and self.args.check_type == "zkp_prob":
+        if True:
             flatten_tensor = None
             grad_shapes = [] # [(name, [shape]), (name, [shape]) ...]
             grad_shapes_name_validate = []
@@ -239,39 +266,66 @@ class ClientMasterManager(FedMLCommManager):
                 else:
                     flatten_tensor = torch.cat((flatten_tensor, torch.flatten(grads[k])))
                     grad_shapes.append((k, list(grads[k].shape)))
-            print ("23-6-2 test print grad_shapes_name_validate: ", grad_shapes_name_validate)
-            print ("23-6-2 test print after scale and before client encode flatten_tensor norm: ", torch.norm(flatten_tensor))
-            print ("23-6-2 test print max: ", torch.max(flatten_tensor))
-            print ("23-6-2 test print min: ", torch.min(flatten_tensor))
-            print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
+            # print ("23-6-2 test print grad_shapes_name_validate: ", grad_shapes_name_validate)
+            # print ("23-6-2 test print after scale and before client encode flatten_tensor norm: ", torch.norm(flatten_tensor))
+            # print ("23-6-2 test print max: ", torch.max(flatten_tensor))
+            # print ("23-6-2 test print min: ", torch.min(flatten_tensor))
+            # print ("23-6-2 test print flatten_tensor shape: ", flatten_tensor.shape)
             weights_i = flatten_tensor.cpu().numpy()  # cpu and numpy of expanded grad of client i
-            print ("numpy weights_i[:10]: \n", weights_i[:10])
+            # print ("numpy weights_i[:10]: \n", weights_i[:10])
             # out_file = 'flatten_tensor_' + str(self.rank) + '_' + str(self.round_idx) + '.npy'
             # np.save(out_file, weights_i)
             weights_i = list(weights_i)
-            print ("list weights_i[:10]: \n", weights_i[:10])
-            print ("len(weights_i): ", len(weights_i))
+            # print ("list weights_i[:10]: \n", weights_i[:10])
+            # print ("len(weights_i): ", len(weights_i))
+
             weights_di_zkp = di_zkp_interface.VecFloat(len(weights_i))
-            print ("for loop for the weights_di_zkp[j]")
-            print ("weights_i[0]:", weights_i[0])
-            print ("type(weights_i): ", type(weights_i))
-            print ("weights_di_zkp[0]: ", weights_di_zkp[0])
-            print ("type(weights_di_zkp): ", type(weights_di_zkp))
+            # print ("for loop for the weights_di_zkp[j]")
+            # print ("weights_i[0]:", weights_i[0])
+            # print ("type(weights_i): ", type(weights_i))
+            # print ("weights_di_zkp[0]: ", weights_di_zkp[0])
+            # print ("type(weights_di_zkp): ", type(weights_di_zkp))
             for j in range(len(weights_i)):
                 # if j % 1000 == 0:
                 #     print ("j: ", j)
                 weights_di_zkp[j] = float(weights_i[j])  # swig vector ...
+
+            # weights_di_zkp = di_zkp_interface.VecFloat(weights_i)
+
             # print(weights)
             # print(type(weights))
-            for j in range(6):
-                print ("weights_di_zkp[j]: ", weights_di_zkp[j])
-            client_message = self.client_instance.send_1(self.args.norm_bound, self.args.standard_deviation_factor, weights_di_zkp)
+            # for j in range(6):
+            #     print ("weights_di_zkp[j]: ", weights_di_zkp[j])
+
+            if self.args.check_pred == 'l2norm':
+                check_param = di_zkp_interface.CheckParamFloat(di_zkp_interface.CHECK_TYPE_L2NORM)
+                check_param.l2_param.bound = self.args.norm_bound
+            elif self.args.check_pred == 'sphere':
+                check_param = di_zkp_interface.CheckParamFloat(di_zkp_interface.CHECK_TYPE_SPHERE)
+                check_param.sphere_param.bound = self.args.sphere_norm_bound
+                # center is normalized last model update, hacked by c++ library
+            elif self.args.check_pred == 'cosine':
+                check_param = di_zkp_interface.CheckParamFloat(di_zkp_interface.CHECK_TYPE_COSINE_SIM)
+                check_param.cosine_param.bound = self.args.norm_bound
+                # pivot and cosine bound are hacked by c++ library
+            elif self.args.check_pred == 'zeno':
+                check_param = di_zkp_interface.CheckParamFloat(di_zkp_interface.CHECK_TYPE_ZENO)
+                check_param.zeno_param.rho = self.args.rho
+                check_param.zeno_param.gamma = self.args.gamma
+                check_param.zeno_param.eps = self.args.eps
+                # pivot hacked by c++ library
+            else:
+                raise ValueError("incorrect check pred!!!")
+
+            client_message = self.client_instance.send_1(check_param, weights_di_zkp)
             print ("23-6-2 test print client side client_message[:10]: \n", client_message[:10])
         ### need to send both client_message and grad_shapes --> client_message is a string ...
 
         ### client 4-2: judge zkp, if yes, self.send_model_to_server(0, grads, local_sample_num)
-        if self.args.privacy_optimizer == 'zkp':
-            if self.args.check_type == "zkp_prob":  # pass both client_message and grad_shapes
+        # if self.args.privacy_optimizer == 'zkp':
+        #     if self.args.check_type == "zkp_prob":  # pass both client_message and grad_shapes
+        if True:
+            if True:  # always use c++ library
                 self.send_model_to_server_zkp_prob(0, client_message, grad_shapes, local_sample_num)
             else:
                 self.send_model_to_server(0, grads, local_sample_num)

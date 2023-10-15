@@ -60,9 +60,9 @@ class FedMLAggregator(object):
     # "zkp_prob"
     def add_local_trained_result_zkp_prob(self, index, client_message, grad_shapes, sample_num):
         logging.info("add_model_zkp. index = %d" % index)
-        print ("test print add_model_zkp index: ", index)
+        # print ("test print add_model_zkp index: ", index)
         # print ("comment-5-16 test model_params: \n", model_params)
-        print ("test sample_num: \n", sample_num)
+        # print ("test sample_num: \n", sample_num)
 
         # for dictionary model_params, we let the user level code to control the device
         # if type(model_params) is not dict:
@@ -75,9 +75,9 @@ class FedMLAggregator(object):
 
     def add_local_trained_result(self, index, model_params, sample_num):
         logging.info("add_model. index = %d" % index)
-        print ("23-5-23 test print add_model index: ", index)
+        # print ("23-5-23 test print add_model index: ", index)
         # print ("comment-5-16 test model_params: \n", model_params)
-        print ("test sample_num: \n", sample_num)
+        # print ("test sample_num: \n", sample_num)
 
         # for dictionary model_params, we let the user level code to control the device
         if type(model_params) is not dict:
@@ -97,7 +97,7 @@ class FedMLAggregator(object):
         return True
 
     def aggregate_zkp_prob(self, servic_instance):
-        print ("test fedml fedml_aggregator.py FedMLAggregator class aggregate_zkp_prob() function return three variables: averaged_params, model_list, model_list_idxes")
+        # print ("test fedml fedml_aggregator.py FedMLAggregator class aggregate_zkp_prob() function return three variables: averaged_params, model_list, model_list_idxes")
         start_time = time.time()
 
         client_model_list = []
@@ -134,7 +134,7 @@ class FedMLAggregator(object):
         return averaged_params, client_model_list, model_list_idxes
     
     def aggregate(self):
-        print ("test fedml fedml_aggregator.py FedMLAggregator class aggregate() function return three variables: averaged_params, model_list, model_list_idxes")
+        # print ("test fedml fedml_aggregator.py FedMLAggregator class aggregate() function return three variables: averaged_params, model_list, model_list_idxes")
         start_time = time.time()
 
         model_list = []

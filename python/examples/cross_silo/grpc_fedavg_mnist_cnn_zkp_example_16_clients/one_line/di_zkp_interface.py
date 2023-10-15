@@ -210,20 +210,97 @@ def encrypt(*args):
 
 def decrypt(*args):
     return _di_zkp_interface.decrypt(*args)
+CHECK_TYPE_L2NORM = _di_zkp_interface.CHECK_TYPE_L2NORM
+CHECK_TYPE_SPHERE = _di_zkp_interface.CHECK_TYPE_SPHERE
+CHECK_TYPE_COSINE_SIM = _di_zkp_interface.CHECK_TYPE_COSINE_SIM
+CHECK_TYPE_ZENO = _di_zkp_interface.CHECK_TYPE_ZENO
+class L2NormCheckParam(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    bound_sq = property(_di_zkp_interface.L2NormCheckParam_bound_sq_get, _di_zkp_interface.L2NormCheckParam_bound_sq_set)
+
+    def __init__(self):
+        _di_zkp_interface.L2NormCheckParam_swiginit(self, _di_zkp_interface.new_L2NormCheckParam())
+    __swig_destroy__ = _di_zkp_interface.delete_L2NormCheckParam
+
+# Register L2NormCheckParam in _di_zkp_interface:
+_di_zkp_interface.L2NormCheckParam_swigregister(L2NormCheckParam)
+
+class SphereCheckParam(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    bound_sq = property(_di_zkp_interface.SphereCheckParam_bound_sq_get, _di_zkp_interface.SphereCheckParam_bound_sq_set)
+    center = property(_di_zkp_interface.SphereCheckParam_center_get, _di_zkp_interface.SphereCheckParam_center_set)
+
+    def __init__(self):
+        _di_zkp_interface.SphereCheckParam_swiginit(self, _di_zkp_interface.new_SphereCheckParam())
+    __swig_destroy__ = _di_zkp_interface.delete_SphereCheckParam
+
+# Register SphereCheckParam in _di_zkp_interface:
+_di_zkp_interface.SphereCheckParam_swigregister(SphereCheckParam)
+
+class CosineSimCheckParam(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    bound_sq = property(_di_zkp_interface.CosineSimCheckParam_bound_sq_get, _di_zkp_interface.CosineSimCheckParam_bound_sq_set)
+    pivot = property(_di_zkp_interface.CosineSimCheckParam_pivot_get, _di_zkp_interface.CosineSimCheckParam_pivot_set)
+    l2_sq_multiplier = property(_di_zkp_interface.CosineSimCheckParam_l2_sq_multiplier_get, _di_zkp_interface.CosineSimCheckParam_l2_sq_multiplier_set)
+    inner_prod_sq_multiplier = property(_di_zkp_interface.CosineSimCheckParam_inner_prod_sq_multiplier_get, _di_zkp_interface.CosineSimCheckParam_inner_prod_sq_multiplier_set)
+
+    def __init__(self):
+        _di_zkp_interface.CosineSimCheckParam_swiginit(self, _di_zkp_interface.new_CosineSimCheckParam())
+    __swig_destroy__ = _di_zkp_interface.delete_CosineSimCheckParam
+
+# Register CosineSimCheckParam in _di_zkp_interface:
+_di_zkp_interface.CosineSimCheckParam_swigregister(CosineSimCheckParam)
+
+class ZenoCheckParam(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    pivot = property(_di_zkp_interface.ZenoCheckParam_pivot_get, _di_zkp_interface.ZenoCheckParam_pivot_set)
+    gamma = property(_di_zkp_interface.ZenoCheckParam_gamma_get, _di_zkp_interface.ZenoCheckParam_gamma_set)
+    rho = property(_di_zkp_interface.ZenoCheckParam_rho_get, _di_zkp_interface.ZenoCheckParam_rho_set)
+    eps = property(_di_zkp_interface.ZenoCheckParam_eps_get, _di_zkp_interface.ZenoCheckParam_eps_set)
+
+    def __init__(self):
+        _di_zkp_interface.ZenoCheckParam_swiginit(self, _di_zkp_interface.new_ZenoCheckParam())
+    __swig_destroy__ = _di_zkp_interface.delete_ZenoCheckParam
+
+# Register ZenoCheckParam in _di_zkp_interface:
+_di_zkp_interface.ZenoCheckParam_swigregister(ZenoCheckParam)
+
+class CheckParam(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    check_type = property(_di_zkp_interface.CheckParam_check_type_get, _di_zkp_interface.CheckParam_check_type_set)
+    l2_param = property(_di_zkp_interface.CheckParam_l2_param_get, _di_zkp_interface.CheckParam_l2_param_set)
+    sphere_param = property(_di_zkp_interface.CheckParam_sphere_param_get, _di_zkp_interface.CheckParam_sphere_param_set)
+    cosine_param = property(_di_zkp_interface.CheckParam_cosine_param_get, _di_zkp_interface.CheckParam_cosine_param_set)
+    zeno_param = property(_di_zkp_interface.CheckParam_zeno_param_get, _di_zkp_interface.CheckParam_zeno_param_set)
+
+    def __init__(self, check_type):
+        _di_zkp_interface.CheckParam_swiginit(self, _di_zkp_interface.new_CheckParam(check_type))
+    __swig_destroy__ = _di_zkp_interface.delete_CheckParam
+
+# Register CheckParam in _di_zkp_interface:
+_di_zkp_interface.CheckParam_swigregister(CheckParam)
+
+
+def extra_inner_prod(c):
+    return _di_zkp_interface.extra_inner_prod(c)
+
+def extra_square(c):
+    return _di_zkp_interface.extra_square(c)
 class Predicate(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
     dim = property(_di_zkp_interface.Predicate_dim_get, _di_zkp_interface.Predicate_dim_set)
     num_weight_keys = property(_di_zkp_interface.Predicate_num_weight_keys_get, _di_zkp_interface.Predicate_num_weight_keys_set)
-    num_blinds_per_weight_key = property(_di_zkp_interface.Predicate_num_blinds_per_weight_key_get, _di_zkp_interface.Predicate_num_blinds_per_weight_key_set)
+    num_blinds_per_group_element = property(_di_zkp_interface.Predicate_num_blinds_per_group_element_get, _di_zkp_interface.Predicate_num_blinds_per_group_element_set)
     num_samples = property(_di_zkp_interface.Predicate_num_samples_get, _di_zkp_interface.Predicate_num_samples_set)
     random_normal_bit_shifter = property(_di_zkp_interface.Predicate_random_normal_bit_shifter_get, _di_zkp_interface.Predicate_random_normal_bit_shifter_set)
-    bias = property(_di_zkp_interface.Predicate_bias_get, _di_zkp_interface.Predicate_bias_set)
-    coeffs = property(_di_zkp_interface.Predicate_coeffs_get, _di_zkp_interface.Predicate_coeffs_set)
-    bias_bound = property(_di_zkp_interface.Predicate_bias_bound_get, _di_zkp_interface.Predicate_bias_bound_set)
-    coeffs_bound = property(_di_zkp_interface.Predicate_coeffs_bound_get, _di_zkp_interface.Predicate_coeffs_bound_set)
-    linear_comb_bound_bits = property(_di_zkp_interface.Predicate_linear_comb_bound_bits_get, _di_zkp_interface.Predicate_linear_comb_bound_bits_set)
-    bound_sq = property(_di_zkp_interface.Predicate_bound_sq_get, _di_zkp_interface.Predicate_bound_sq_set)
+    inner_prod_bound_bits = property(_di_zkp_interface.Predicate_inner_prod_bound_bits_get, _di_zkp_interface.Predicate_inner_prod_bound_bits_set)
+    check_param = property(_di_zkp_interface.Predicate_check_param_get, _di_zkp_interface.Predicate_check_param_set)
     max_bound_sq_bits = property(_di_zkp_interface.Predicate_max_bound_sq_bits_get, _di_zkp_interface.Predicate_max_bound_sq_bits_set)
     bound_elem_keys_1 = property(_di_zkp_interface.Predicate_bound_elem_keys_1_get, _di_zkp_interface.Predicate_bound_elem_keys_1_set)
     bound_elem_keys_2 = property(_di_zkp_interface.Predicate_bound_elem_keys_2_get, _di_zkp_interface.Predicate_bound_elem_keys_2_set)
@@ -234,11 +311,8 @@ class Predicate(object):
     hh_comb = property(_di_zkp_interface.Predicate_hh_comb_get, _di_zkp_interface.Predicate_hh_comb_set)
     square_key = property(_di_zkp_interface.Predicate_square_key_get, _di_zkp_interface.Predicate_square_key_set)
 
-    def __init__(self, dim, num_blinds_per_weight_key, num_samples, random_normal_bit_shifter, linear_comb_bound_bits, max_bound_sq_bits, b_precomp=True):
-        _di_zkp_interface.Predicate_swiginit(self, _di_zkp_interface.new_Predicate(dim, num_blinds_per_weight_key, num_samples, random_normal_bit_shifter, linear_comb_bound_bits, max_bound_sq_bits, b_precomp))
-
-    def set_bound_sq(self, B):
-        return _di_zkp_interface.Predicate_set_bound_sq(self, B)
+    def __init__(self, dim, num_blinds_per_group_element, num_samples, random_normal_bit_shifter, check_type, inner_prod_bound_bits, max_bound_sq_bits, b_precomp=True):
+        _di_zkp_interface.Predicate_swiginit(self, _di_zkp_interface.new_Predicate(dim, num_blinds_per_group_element, num_samples, random_normal_bit_shifter, check_type, inner_prod_bound_bits, max_bound_sq_bits, b_precomp))
 
     def initialize_from_seed(self, seed):
         return _di_zkp_interface.Predicate_initialize_from_seed(self, seed)
@@ -250,6 +324,7 @@ _di_zkp_interface.Predicate_swigregister(Predicate)
 class Proof(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
+    check_type = property(_di_zkp_interface.Proof_check_type_get, _di_zkp_interface.Proof_check_type_set)
     linear_comb_batch_commitments = property(_di_zkp_interface.Proof_linear_comb_batch_commitments_get, _di_zkp_interface.Proof_linear_comb_batch_commitments_set)
     linear_comb_single_commitments = property(_di_zkp_interface.Proof_linear_comb_single_commitments_get, _di_zkp_interface.Proof_linear_comb_single_commitments_set)
     proof_well_formed = property(_di_zkp_interface.Proof_proof_well_formed_get, _di_zkp_interface.Proof_proof_well_formed_set)
@@ -257,13 +332,14 @@ class Proof(object):
     square_commitments = property(_di_zkp_interface.Proof_square_commitments_get, _di_zkp_interface.Proof_square_commitments_set)
     proof_squares = property(_di_zkp_interface.Proof_proof_squares_get, _di_zkp_interface.Proof_proof_squares_set)
     proof_sum_range = property(_di_zkp_interface.Proof_proof_sum_range_get, _di_zkp_interface.Proof_proof_sum_range_set)
+    proof_sum_range_for_cosine = property(_di_zkp_interface.Proof_proof_sum_range_for_cosine_get, _di_zkp_interface.Proof_proof_sum_range_for_cosine_set)
 
-    def __init__(self, num_blinds_per_weight_key, num_norm_bound_samples, linear_comb_bound_bits, sum_bound_bits):
-        _di_zkp_interface.Proof_swiginit(self, _di_zkp_interface.new_Proof(num_blinds_per_weight_key, num_norm_bound_samples, linear_comb_bound_bits, sum_bound_bits))
+    def __init__(self, check_type, num_blinds_per_group_element, num_norm_bound_samples, inner_prod_bound_bits, sum_bound_bits):
+        _di_zkp_interface.Proof_swiginit(self, _di_zkp_interface.new_Proof(check_type, num_blinds_per_group_element, num_norm_bound_samples, inner_prod_bound_bits, sum_bound_bits))
 
     @staticmethod
-    def size(num_blinds_per_weight_key, num_norm_bound_samples, linear_comb_bound_bits, sq_sum_bound_bits):
-        return _di_zkp_interface.Proof_size(num_blinds_per_weight_key, num_norm_bound_samples, linear_comb_bound_bits, sq_sum_bound_bits)
+    def size(check_type, num_blinds_per_group_element, num_norm_bound_samples, inner_prod_bound_bits, sq_sum_bound_bits):
+        return _di_zkp_interface.Proof_size(check_type, num_blinds_per_group_element, num_norm_bound_samples, inner_prod_bound_bits, sq_sum_bound_bits)
 
     def export_to_bytestream(self, it):
         return _di_zkp_interface.Proof_export_to_bytestream(self, it)
@@ -275,13 +351,82 @@ class Proof(object):
 # Register Proof in _di_zkp_interface:
 _di_zkp_interface.Proof_swigregister(Proof)
 
-def Proof_size(num_blinds_per_weight_key, num_norm_bound_samples, linear_comb_bound_bits, sq_sum_bound_bits):
-    return _di_zkp_interface.Proof_size(num_blinds_per_weight_key, num_norm_bound_samples, linear_comb_bound_bits, sq_sum_bound_bits)
+def Proof_size(check_type, num_blinds_per_group_element, num_norm_bound_samples, inner_prod_bound_bits, sq_sum_bound_bits):
+    return _di_zkp_interface.Proof_size(check_type, num_blinds_per_group_element, num_norm_bound_samples, inner_prod_bound_bits, sq_sum_bound_bits)
 
-PROTOCOL_TYPE_PRECOMP = _di_zkp_interface.PROTOCOL_TYPE_PRECOMP
-PROTOCOL_TYPE_NO_PRECOMP = _di_zkp_interface.PROTOCOL_TYPE_NO_PRECOMP
+PROTOCOL_TYPE_PRIV = _di_zkp_interface.PROTOCOL_TYPE_PRIV
 PROTOCOL_TYPE_NON_PRIV_INT = _di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_INT
 PROTOCOL_TYPE_NON_PRIV_FLOAT = _di_zkp_interface.PROTOCOL_TYPE_NON_PRIV_FLOAT
+class L2NormCheckParamFloat(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    bound = property(_di_zkp_interface.L2NormCheckParamFloat_bound_get, _di_zkp_interface.L2NormCheckParamFloat_bound_set)
+
+    def __init__(self):
+        _di_zkp_interface.L2NormCheckParamFloat_swiginit(self, _di_zkp_interface.new_L2NormCheckParamFloat())
+    __swig_destroy__ = _di_zkp_interface.delete_L2NormCheckParamFloat
+
+# Register L2NormCheckParamFloat in _di_zkp_interface:
+_di_zkp_interface.L2NormCheckParamFloat_swigregister(L2NormCheckParamFloat)
+
+class SphereCheckParamFloat(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    bound = property(_di_zkp_interface.SphereCheckParamFloat_bound_get, _di_zkp_interface.SphereCheckParamFloat_bound_set)
+    center = property(_di_zkp_interface.SphereCheckParamFloat_center_get, _di_zkp_interface.SphereCheckParamFloat_center_set)
+
+    def __init__(self):
+        _di_zkp_interface.SphereCheckParamFloat_swiginit(self, _di_zkp_interface.new_SphereCheckParamFloat())
+    __swig_destroy__ = _di_zkp_interface.delete_SphereCheckParamFloat
+
+# Register SphereCheckParamFloat in _di_zkp_interface:
+_di_zkp_interface.SphereCheckParamFloat_swigregister(SphereCheckParamFloat)
+
+class CosineSimCheckParamFloat(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    bound = property(_di_zkp_interface.CosineSimCheckParamFloat_bound_get, _di_zkp_interface.CosineSimCheckParamFloat_bound_set)
+    pivot = property(_di_zkp_interface.CosineSimCheckParamFloat_pivot_get, _di_zkp_interface.CosineSimCheckParamFloat_pivot_set)
+    cosine_bound = property(_di_zkp_interface.CosineSimCheckParamFloat_cosine_bound_get, _di_zkp_interface.CosineSimCheckParamFloat_cosine_bound_set)
+
+    def __init__(self):
+        _di_zkp_interface.CosineSimCheckParamFloat_swiginit(self, _di_zkp_interface.new_CosineSimCheckParamFloat())
+    __swig_destroy__ = _di_zkp_interface.delete_CosineSimCheckParamFloat
+
+# Register CosineSimCheckParamFloat in _di_zkp_interface:
+_di_zkp_interface.CosineSimCheckParamFloat_swigregister(CosineSimCheckParamFloat)
+
+class ZenoCheckParamFloat(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    pivot = property(_di_zkp_interface.ZenoCheckParamFloat_pivot_get, _di_zkp_interface.ZenoCheckParamFloat_pivot_set)
+    gamma = property(_di_zkp_interface.ZenoCheckParamFloat_gamma_get, _di_zkp_interface.ZenoCheckParamFloat_gamma_set)
+    rho = property(_di_zkp_interface.ZenoCheckParamFloat_rho_get, _di_zkp_interface.ZenoCheckParamFloat_rho_set)
+    eps = property(_di_zkp_interface.ZenoCheckParamFloat_eps_get, _di_zkp_interface.ZenoCheckParamFloat_eps_set)
+
+    def __init__(self):
+        _di_zkp_interface.ZenoCheckParamFloat_swiginit(self, _di_zkp_interface.new_ZenoCheckParamFloat())
+    __swig_destroy__ = _di_zkp_interface.delete_ZenoCheckParamFloat
+
+# Register ZenoCheckParamFloat in _di_zkp_interface:
+_di_zkp_interface.ZenoCheckParamFloat_swigregister(ZenoCheckParamFloat)
+
+class CheckParamFloat(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    check_type = property(_di_zkp_interface.CheckParamFloat_check_type_get, _di_zkp_interface.CheckParamFloat_check_type_set)
+    l2_param = property(_di_zkp_interface.CheckParamFloat_l2_param_get, _di_zkp_interface.CheckParamFloat_l2_param_set)
+    sphere_param = property(_di_zkp_interface.CheckParamFloat_sphere_param_get, _di_zkp_interface.CheckParamFloat_sphere_param_set)
+    cosine_param = property(_di_zkp_interface.CheckParamFloat_cosine_param_get, _di_zkp_interface.CheckParamFloat_cosine_param_set)
+    zeno_param = property(_di_zkp_interface.CheckParamFloat_zeno_param_get, _di_zkp_interface.CheckParamFloat_zeno_param_set)
+
+    def __init__(self, check_type):
+        _di_zkp_interface.CheckParamFloat_swiginit(self, _di_zkp_interface.new_CheckParamFloat(check_type))
+    __swig_destroy__ = _di_zkp_interface.delete_CheckParamFloat
+
+# Register CheckParamFloat in _di_zkp_interface:
+_di_zkp_interface.CheckParamFloat_swigregister(CheckParamFloat)
+
 class CommonInterface(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
@@ -293,20 +438,24 @@ class CommonInterface(object):
     weight_bits = property(_di_zkp_interface.CommonInterface_weight_bits_get, _di_zkp_interface.CommonInterface_weight_bits_set)
     server_flags = property(_di_zkp_interface.CommonInterface_server_flags_get, _di_zkp_interface.CommonInterface_server_flags_set)
     dh_public_key_collection = property(_di_zkp_interface.CommonInterface_dh_public_key_collection_get, _di_zkp_interface.CommonInterface_dh_public_key_collection_set)
+    bul_signed_pub_key_collection = property(_di_zkp_interface.CommonInterface_bul_signed_pub_key_collection_get, _di_zkp_interface.CommonInterface_bul_signed_pub_key_collection_set)
     predicate = property(_di_zkp_interface.CommonInterface_predicate_get, _di_zkp_interface.CommonInterface_predicate_set)
     shamir_check_string_collection = property(_di_zkp_interface.CommonInterface_shamir_check_string_collection_get, _di_zkp_interface.CommonInterface_shamir_check_string_collection_set)
 
     def __init__(self, *args):
         _di_zkp_interface.CommonInterface_swiginit(self, _di_zkp_interface.new_CommonInterface(*args))
 
-    def set_bound_sq(self, B):
-        return _di_zkp_interface.CommonInterface_set_bound_sq(self, B)
+    def set_param(self, c):
+        return _di_zkp_interface.CommonInterface_set_param(self, c)
 
-    def set_normalizing_factor_and_compute_bound_sq(self, norm_bound, standard_deviation_factor):
-        return _di_zkp_interface.CommonInterface_set_normalizing_factor_and_compute_bound_sq(self, norm_bound, standard_deviation_factor)
+    def set_normalizing_factor_and_compute_check_param_from_gamma(self, check_param_float):
+        return _di_zkp_interface.CommonInterface_set_normalizing_factor_and_compute_check_param_from_gamma(self, check_param_float)
 
     def reset_server_flags(self):
         return _di_zkp_interface.CommonInterface_reset_server_flags(self)
+
+    def valid_client_count(self):
+        return _di_zkp_interface.CommonInterface_valid_client_count(self)
     __swig_destroy__ = _di_zkp_interface.delete_CommonInterface
 
 # Register CommonInterface in _di_zkp_interface:
@@ -322,6 +471,8 @@ class ClientInterface(CommonInterface):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
     client_id = property(_di_zkp_interface.ClientInterface_client_id_get, _di_zkp_interface.ClientInterface_client_id_set)
+    bul_pub_keys = property(_di_zkp_interface.ClientInterface_bul_pub_keys_get, _di_zkp_interface.ClientInterface_bul_pub_keys_set)
+    bul_prv_key = property(_di_zkp_interface.ClientInterface_bul_prv_key_get, _di_zkp_interface.ClientInterface_bul_prv_key_set)
     weight_updates = property(_di_zkp_interface.ClientInterface_weight_updates_get, _di_zkp_interface.ClientInterface_weight_updates_set)
     blinds_to_share = property(_di_zkp_interface.ClientInterface_blinds_to_share_get, _di_zkp_interface.ClientInterface_blinds_to_share_set)
     dh_public_key = property(_di_zkp_interface.ClientInterface_dh_public_key_get, _di_zkp_interface.ClientInterface_dh_public_key_set)
@@ -379,20 +530,35 @@ class ClientInterface(CommonInterface):
     def initialize_from_seed(self, seed):
         return _di_zkp_interface.ClientInterface_initialize_from_seed(self, seed)
 
-    def send_1_internal(self, B, u):
-        return _di_zkp_interface.ClientInterface_send_1_internal(self, B, u)
+    def send_1_internal(self, check_param, u):
+        return _di_zkp_interface.ClientInterface_send_1_internal(self, check_param, u)
 
-    def send_1(self, norm_bound, standard_deviation_factor, u_float):
-        return _di_zkp_interface.ClientInterface_send_1(self, norm_bound, standard_deviation_factor, u_float)
+    def send_1_bytes(self, check_param_float, u_float):
+        return _di_zkp_interface.ClientInterface_send_1_bytes(self, check_param_float, u_float)
+
+    def send_1(self, check_param_float, u_float):
+        return _di_zkp_interface.ClientInterface_send_1(self, check_param_float, u_float)
+
+    def receive_and_send_2_bytes(self, bytes):
+        return _di_zkp_interface.ClientInterface_receive_and_send_2_bytes(self, bytes)
 
     def receive_and_send_2(self, bytes_str):
         return _di_zkp_interface.ClientInterface_receive_and_send_2(self, bytes_str)
 
+    def receive_and_send_3_bytes(self, bytes):
+        return _di_zkp_interface.ClientInterface_receive_and_send_3_bytes(self, bytes)
+
     def receive_and_send_3(self, bytes_str):
         return _di_zkp_interface.ClientInterface_receive_and_send_3(self, bytes_str)
 
+    def receive_and_send_4_bytes(self, bytes):
+        return _di_zkp_interface.ClientInterface_receive_and_send_4_bytes(self, bytes)
+
     def receive_and_send_4(self, bytes_str):
         return _di_zkp_interface.ClientInterface_receive_and_send_4(self, bytes_str)
+
+    def receive_and_send_5_bytes(self, bytes):
+        return _di_zkp_interface.ClientInterface_receive_and_send_5_bytes(self, bytes)
 
     def receive_and_send_5(self, bytes_str):
         return _di_zkp_interface.ClientInterface_receive_and_send_5(self, bytes_str)
@@ -506,6 +672,112 @@ class VecFloat(object):
 
 # Register VecFloat in _di_zkp_interface:
 _di_zkp_interface.VecFloat_swigregister(VecFloat)
+
+class VecInt(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+
+    def iterator(self):
+        return _di_zkp_interface.VecInt_iterator(self)
+    def __iter__(self):
+        return self.iterator()
+
+    def __nonzero__(self):
+        return _di_zkp_interface.VecInt___nonzero__(self)
+
+    def __bool__(self):
+        return _di_zkp_interface.VecInt___bool__(self)
+
+    def __len__(self):
+        return _di_zkp_interface.VecInt___len__(self)
+
+    def __getslice__(self, i, j):
+        return _di_zkp_interface.VecInt___getslice__(self, i, j)
+
+    def __setslice__(self, *args):
+        return _di_zkp_interface.VecInt___setslice__(self, *args)
+
+    def __delslice__(self, i, j):
+        return _di_zkp_interface.VecInt___delslice__(self, i, j)
+
+    def __delitem__(self, *args):
+        return _di_zkp_interface.VecInt___delitem__(self, *args)
+
+    def __getitem__(self, *args):
+        return _di_zkp_interface.VecInt___getitem__(self, *args)
+
+    def __setitem__(self, *args):
+        return _di_zkp_interface.VecInt___setitem__(self, *args)
+
+    def pop(self):
+        return _di_zkp_interface.VecInt_pop(self)
+
+    def append(self, x):
+        return _di_zkp_interface.VecInt_append(self, x)
+
+    def empty(self):
+        return _di_zkp_interface.VecInt_empty(self)
+
+    def size(self):
+        return _di_zkp_interface.VecInt_size(self)
+
+    def swap(self, v):
+        return _di_zkp_interface.VecInt_swap(self, v)
+
+    def begin(self):
+        return _di_zkp_interface.VecInt_begin(self)
+
+    def end(self):
+        return _di_zkp_interface.VecInt_end(self)
+
+    def rbegin(self):
+        return _di_zkp_interface.VecInt_rbegin(self)
+
+    def rend(self):
+        return _di_zkp_interface.VecInt_rend(self)
+
+    def clear(self):
+        return _di_zkp_interface.VecInt_clear(self)
+
+    def get_allocator(self):
+        return _di_zkp_interface.VecInt_get_allocator(self)
+
+    def pop_back(self):
+        return _di_zkp_interface.VecInt_pop_back(self)
+
+    def erase(self, *args):
+        return _di_zkp_interface.VecInt_erase(self, *args)
+
+    def __init__(self, *args):
+        _di_zkp_interface.VecInt_swiginit(self, _di_zkp_interface.new_VecInt(*args))
+
+    def push_back(self, x):
+        return _di_zkp_interface.VecInt_push_back(self, x)
+
+    def front(self):
+        return _di_zkp_interface.VecInt_front(self)
+
+    def back(self):
+        return _di_zkp_interface.VecInt_back(self)
+
+    def assign(self, n, x):
+        return _di_zkp_interface.VecInt_assign(self, n, x)
+
+    def resize(self, *args):
+        return _di_zkp_interface.VecInt_resize(self, *args)
+
+    def insert(self, *args):
+        return _di_zkp_interface.VecInt_insert(self, *args)
+
+    def reserve(self, n):
+        return _di_zkp_interface.VecInt_reserve(self, n)
+
+    def capacity(self):
+        return _di_zkp_interface.VecInt_capacity(self)
+    __swig_destroy__ = _di_zkp_interface.delete_VecInt
+
+# Register VecInt in _di_zkp_interface:
+_di_zkp_interface.VecInt_swigregister(VecInt)
 
 class VecVecFloat(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
@@ -627,6 +899,9 @@ class RistElemHasher(object):
 # Register RistElemHasher in _di_zkp_interface:
 _di_zkp_interface.RistElemHasher_swigregister(RistElemHasher)
 
+
+def gen_mal_list_1_to_m(m):
+    return _di_zkp_interface.gen_mal_list_1_to_m(m)
 class ServerInterface(CommonInterface):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
@@ -635,6 +910,7 @@ class ServerInterface(CommonInterface):
     encrypted_shamir_shares_collection = property(_di_zkp_interface.ServerInterface_encrypted_shamir_shares_collection_get, _di_zkp_interface.ServerInterface_encrypted_shamir_shares_collection_set)
     proof_collection = property(_di_zkp_interface.ServerInterface_proof_collection_get, _di_zkp_interface.ServerInterface_proof_collection_set)
     bb = property(_di_zkp_interface.ServerInterface_bb_get, _di_zkp_interface.ServerInterface_bb_set)
+    bb_bias = property(_di_zkp_interface.ServerInterface_bb_bias_get, _di_zkp_interface.ServerInterface_bb_bias_set)
     aa_bb = property(_di_zkp_interface.ServerInterface_aa_bb_get, _di_zkp_interface.ServerInterface_aa_bb_set)
     dispute_table = property(_di_zkp_interface.ServerInterface_dispute_table_get, _di_zkp_interface.ServerInterface_dispute_table_set)
     dispute_shares_collection = property(_di_zkp_interface.ServerInterface_dispute_shares_collection_get, _di_zkp_interface.ServerInterface_dispute_shares_collection_set)
@@ -646,7 +922,9 @@ class ServerInterface(CommonInterface):
     final_update_float_avg = property(_di_zkp_interface.ServerInterface_final_update_float_avg_get, _di_zkp_interface.ServerInterface_final_update_float_avg_set)
     updates_int_collection = property(_di_zkp_interface.ServerInterface_updates_int_collection_get, _di_zkp_interface.ServerInterface_updates_int_collection_set)
     updates_float_collection = property(_di_zkp_interface.ServerInterface_updates_float_collection_get, _di_zkp_interface.ServerInterface_updates_float_collection_set)
-    float_bound = property(_di_zkp_interface.ServerInterface_float_bound_get, _di_zkp_interface.ServerInterface_float_bound_set)
+    float_l2_sq_multiplier = property(_di_zkp_interface.ServerInterface_float_l2_sq_multiplier_get, _di_zkp_interface.ServerInterface_float_l2_sq_multiplier_set)
+    check_param_float = property(_di_zkp_interface.ServerInterface_check_param_float_get, _di_zkp_interface.ServerInterface_check_param_float_set)
+    last_model_update = property(_di_zkp_interface.ServerInterface_last_model_update_get, _di_zkp_interface.ServerInterface_last_model_update_set)
 
     def __init__(self, *args):
         _di_zkp_interface.ServerInterface_swiginit(self, _di_zkp_interface.new_ServerInterface(*args))
@@ -690,20 +968,26 @@ class ServerInterface(CommonInterface):
     def compute_final_update(self, parallel_on_clients=False):
         return _di_zkp_interface.ServerInterface_compute_final_update(self, parallel_on_clients)
 
-    def valid_client_count(self):
-        return _di_zkp_interface.ServerInterface_valid_client_count(self)
-
     def initialize_from_seed(self, seed):
         return _di_zkp_interface.ServerInterface_initialize_from_seed(self, seed)
 
-    def initialize_new_iteration(self, *args):
-        return _di_zkp_interface.ServerInterface_initialize_new_iteration(self, *args)
+    def initialize_new_iteration(self, check_param_float):
+        return _di_zkp_interface.ServerInterface_initialize_new_iteration(self, check_param_float)
+
+    def receive_1_bytes(self, bytes, i):
+        return _di_zkp_interface.ServerInterface_receive_1_bytes(self, bytes, i)
 
     def receive_1(self, bytes_str, i):
         return _di_zkp_interface.ServerInterface_receive_1(self, bytes_str, i)
 
+    def send_2_bytes(self):
+        return _di_zkp_interface.ServerInterface_send_2_bytes(self)
+
     def send_2(self):
         return _di_zkp_interface.ServerInterface_send_2(self)
+
+    def receive_2_bytes(self, bytes, i):
+        return _di_zkp_interface.ServerInterface_receive_2_bytes(self, bytes, i)
 
     def receive_2(self, bytes_str, i):
         return _di_zkp_interface.ServerInterface_receive_2(self, bytes_str, i)
@@ -711,8 +995,14 @@ class ServerInterface(CommonInterface):
     def concurrent_process_before_send_3(self):
         return _di_zkp_interface.ServerInterface_concurrent_process_before_send_3(self)
 
+    def send_3_bytes(self, i):
+        return _di_zkp_interface.ServerInterface_send_3_bytes(self, i)
+
     def send_3(self, i):
         return _di_zkp_interface.ServerInterface_send_3(self, i)
+
+    def receive_3_bytes(self, bytes, i):
+        return _di_zkp_interface.ServerInterface_receive_3_bytes(self, bytes, i)
 
     def receive_3(self, bytes_str, i):
         return _di_zkp_interface.ServerInterface_receive_3(self, bytes_str, i)
@@ -720,8 +1010,14 @@ class ServerInterface(CommonInterface):
     def process_before_send_4(self):
         return _di_zkp_interface.ServerInterface_process_before_send_4(self)
 
+    def send_4_bytes(self, i):
+        return _di_zkp_interface.ServerInterface_send_4_bytes(self, i)
+
     def send_4(self, i):
         return _di_zkp_interface.ServerInterface_send_4(self, i)
+
+    def receive_4_bytes(self, bytes, i):
+        return _di_zkp_interface.ServerInterface_receive_4_bytes(self, bytes, i)
 
     def receive_4(self, bytes_str, i):
         return _di_zkp_interface.ServerInterface_receive_4(self, bytes_str, i)
@@ -729,8 +1025,14 @@ class ServerInterface(CommonInterface):
     def process_before_send_5(self):
         return _di_zkp_interface.ServerInterface_process_before_send_5(self)
 
+    def send_5_bytes(self, i):
+        return _di_zkp_interface.ServerInterface_send_5_bytes(self, i)
+
     def send_5(self, i):
         return _di_zkp_interface.ServerInterface_send_5(self, i)
+
+    def receive_5_bytes(self, bytes, i):
+        return _di_zkp_interface.ServerInterface_receive_5_bytes(self, bytes, i)
 
     def receive_5(self, bytes_str, i):
         return _di_zkp_interface.ServerInterface_receive_5(self, bytes_str, i)
@@ -738,15 +1040,306 @@ class ServerInterface(CommonInterface):
     def finish_iteration(self, parallel_on_clients=False):
         return _di_zkp_interface.ServerInterface_finish_iteration(self, parallel_on_clients)
 
+    def simulate_noisy_attack(self, *args):
+        return _di_zkp_interface.ServerInterface_simulate_noisy_attack(self, *args)
+
+    def simulate_mp_pd_attack(self, *args):
+        return _di_zkp_interface.ServerInterface_simulate_mp_pd_attack(self, *args)
+
+    def simulate_mp_nt_attack(self, *args):
+        return _di_zkp_interface.ServerInterface_simulate_mp_nt_attack(self, *args)
+
+    def finish_iteration_no_check(self):
+        return _di_zkp_interface.ServerInterface_finish_iteration_no_check(self)
+
+    def finish_iteration_strict_check(self):
+        return _di_zkp_interface.ServerInterface_finish_iteration_strict_check(self)
+
     def string_api_test(self, a):
         return _di_zkp_interface.ServerInterface_string_api_test(self, a)
     __swig_destroy__ = _di_zkp_interface.delete_ServerInterface
 
 # Register ServerInterface in _di_zkp_interface:
 _di_zkp_interface.ServerInterface_swigregister(ServerInterface)
+MAX_MULT_BASE_TABLE_BIT_SIZE = cvar.MAX_MULT_BASE_TABLE_BIT_SIZE
 
 
 def discrete_log(y, small_table, per_side_step_count):
     return _di_zkp_interface.discrete_log(y, small_table, per_side_step_count)
+class SignPubKey(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    key = property(_di_zkp_interface.SignPubKey_key_get, _di_zkp_interface.SignPubKey_key_set)
+
+    def __init__(self):
+        _di_zkp_interface.SignPubKey_swiginit(self, _di_zkp_interface.new_SignPubKey())
+    __swig_destroy__ = _di_zkp_interface.delete_SignPubKey
+
+# Register SignPubKey in _di_zkp_interface:
+_di_zkp_interface.SignPubKey_swigregister(SignPubKey)
+SIGNPUBKEYBYTES = cvar.SIGNPUBKEYBYTES
+SIGNPRVKEYBYTES = cvar.SIGNPRVKEYBYTES
+SIGNBYTES = cvar.SIGNBYTES
+
+class SignPrvKey(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+    key = property(_di_zkp_interface.SignPrvKey_key_get, _di_zkp_interface.SignPrvKey_key_set)
+
+    def __init__(self):
+        _di_zkp_interface.SignPrvKey_swiginit(self, _di_zkp_interface.new_SignPrvKey())
+    __swig_destroy__ = _di_zkp_interface.delete_SignPrvKey
+
+# Register SignPrvKey in _di_zkp_interface:
+_di_zkp_interface.SignPrvKey_swigregister(SignPrvKey)
+
+
+def gen_sign_key_pair():
+    return _di_zkp_interface.gen_sign_key_pair()
+
+def sign(mes, prv):
+    return _di_zkp_interface.sign(mes, prv)
+
+def sign_open(signed_mes, pub):
+    return _di_zkp_interface.sign_open(signed_mes, pub)
+class PairSignKeys(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+
+    def __init__(self, *args):
+        _di_zkp_interface.PairSignKeys_swiginit(self, _di_zkp_interface.new_PairSignKeys(*args))
+    first = property(_di_zkp_interface.PairSignKeys_first_get, _di_zkp_interface.PairSignKeys_first_set)
+    second = property(_di_zkp_interface.PairSignKeys_second_get, _di_zkp_interface.PairSignKeys_second_set)
+    def __len__(self):
+        return 2
+    def __repr__(self):
+        return str((self.first, self.second))
+    def __getitem__(self, index): 
+        if not (index % 2):
+            return self.first
+        else:
+            return self.second
+    def __setitem__(self, index, val):
+        if not (index % 2):
+            self.first = val
+        else:
+            self.second = val
+    __swig_destroy__ = _di_zkp_interface.delete_PairSignKeys
+
+# Register PairSignKeys in _di_zkp_interface:
+_di_zkp_interface.PairSignKeys_swigregister(PairSignKeys)
+
+class VecSignPubKeys(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+
+    def iterator(self):
+        return _di_zkp_interface.VecSignPubKeys_iterator(self)
+    def __iter__(self):
+        return self.iterator()
+
+    def __nonzero__(self):
+        return _di_zkp_interface.VecSignPubKeys___nonzero__(self)
+
+    def __bool__(self):
+        return _di_zkp_interface.VecSignPubKeys___bool__(self)
+
+    def __len__(self):
+        return _di_zkp_interface.VecSignPubKeys___len__(self)
+
+    def __getslice__(self, i, j):
+        return _di_zkp_interface.VecSignPubKeys___getslice__(self, i, j)
+
+    def __setslice__(self, *args):
+        return _di_zkp_interface.VecSignPubKeys___setslice__(self, *args)
+
+    def __delslice__(self, i, j):
+        return _di_zkp_interface.VecSignPubKeys___delslice__(self, i, j)
+
+    def __delitem__(self, *args):
+        return _di_zkp_interface.VecSignPubKeys___delitem__(self, *args)
+
+    def __getitem__(self, *args):
+        return _di_zkp_interface.VecSignPubKeys___getitem__(self, *args)
+
+    def __setitem__(self, *args):
+        return _di_zkp_interface.VecSignPubKeys___setitem__(self, *args)
+
+    def pop(self):
+        return _di_zkp_interface.VecSignPubKeys_pop(self)
+
+    def append(self, x):
+        return _di_zkp_interface.VecSignPubKeys_append(self, x)
+
+    def empty(self):
+        return _di_zkp_interface.VecSignPubKeys_empty(self)
+
+    def size(self):
+        return _di_zkp_interface.VecSignPubKeys_size(self)
+
+    def swap(self, v):
+        return _di_zkp_interface.VecSignPubKeys_swap(self, v)
+
+    def begin(self):
+        return _di_zkp_interface.VecSignPubKeys_begin(self)
+
+    def end(self):
+        return _di_zkp_interface.VecSignPubKeys_end(self)
+
+    def rbegin(self):
+        return _di_zkp_interface.VecSignPubKeys_rbegin(self)
+
+    def rend(self):
+        return _di_zkp_interface.VecSignPubKeys_rend(self)
+
+    def clear(self):
+        return _di_zkp_interface.VecSignPubKeys_clear(self)
+
+    def get_allocator(self):
+        return _di_zkp_interface.VecSignPubKeys_get_allocator(self)
+
+    def pop_back(self):
+        return _di_zkp_interface.VecSignPubKeys_pop_back(self)
+
+    def erase(self, *args):
+        return _di_zkp_interface.VecSignPubKeys_erase(self, *args)
+
+    def __init__(self, *args):
+        _di_zkp_interface.VecSignPubKeys_swiginit(self, _di_zkp_interface.new_VecSignPubKeys(*args))
+
+    def push_back(self, x):
+        return _di_zkp_interface.VecSignPubKeys_push_back(self, x)
+
+    def front(self):
+        return _di_zkp_interface.VecSignPubKeys_front(self)
+
+    def back(self):
+        return _di_zkp_interface.VecSignPubKeys_back(self)
+
+    def assign(self, n, x):
+        return _di_zkp_interface.VecSignPubKeys_assign(self, n, x)
+
+    def resize(self, *args):
+        return _di_zkp_interface.VecSignPubKeys_resize(self, *args)
+
+    def insert(self, *args):
+        return _di_zkp_interface.VecSignPubKeys_insert(self, *args)
+
+    def reserve(self, n):
+        return _di_zkp_interface.VecSignPubKeys_reserve(self, n)
+
+    def capacity(self):
+        return _di_zkp_interface.VecSignPubKeys_capacity(self)
+    __swig_destroy__ = _di_zkp_interface.delete_VecSignPubKeys
+
+# Register VecSignPubKeys in _di_zkp_interface:
+_di_zkp_interface.VecSignPubKeys_swigregister(VecSignPubKeys)
+
+class VecSignPrvKeys(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+
+    def iterator(self):
+        return _di_zkp_interface.VecSignPrvKeys_iterator(self)
+    def __iter__(self):
+        return self.iterator()
+
+    def __nonzero__(self):
+        return _di_zkp_interface.VecSignPrvKeys___nonzero__(self)
+
+    def __bool__(self):
+        return _di_zkp_interface.VecSignPrvKeys___bool__(self)
+
+    def __len__(self):
+        return _di_zkp_interface.VecSignPrvKeys___len__(self)
+
+    def __getslice__(self, i, j):
+        return _di_zkp_interface.VecSignPrvKeys___getslice__(self, i, j)
+
+    def __setslice__(self, *args):
+        return _di_zkp_interface.VecSignPrvKeys___setslice__(self, *args)
+
+    def __delslice__(self, i, j):
+        return _di_zkp_interface.VecSignPrvKeys___delslice__(self, i, j)
+
+    def __delitem__(self, *args):
+        return _di_zkp_interface.VecSignPrvKeys___delitem__(self, *args)
+
+    def __getitem__(self, *args):
+        return _di_zkp_interface.VecSignPrvKeys___getitem__(self, *args)
+
+    def __setitem__(self, *args):
+        return _di_zkp_interface.VecSignPrvKeys___setitem__(self, *args)
+
+    def pop(self):
+        return _di_zkp_interface.VecSignPrvKeys_pop(self)
+
+    def append(self, x):
+        return _di_zkp_interface.VecSignPrvKeys_append(self, x)
+
+    def empty(self):
+        return _di_zkp_interface.VecSignPrvKeys_empty(self)
+
+    def size(self):
+        return _di_zkp_interface.VecSignPrvKeys_size(self)
+
+    def swap(self, v):
+        return _di_zkp_interface.VecSignPrvKeys_swap(self, v)
+
+    def begin(self):
+        return _di_zkp_interface.VecSignPrvKeys_begin(self)
+
+    def end(self):
+        return _di_zkp_interface.VecSignPrvKeys_end(self)
+
+    def rbegin(self):
+        return _di_zkp_interface.VecSignPrvKeys_rbegin(self)
+
+    def rend(self):
+        return _di_zkp_interface.VecSignPrvKeys_rend(self)
+
+    def clear(self):
+        return _di_zkp_interface.VecSignPrvKeys_clear(self)
+
+    def get_allocator(self):
+        return _di_zkp_interface.VecSignPrvKeys_get_allocator(self)
+
+    def pop_back(self):
+        return _di_zkp_interface.VecSignPrvKeys_pop_back(self)
+
+    def erase(self, *args):
+        return _di_zkp_interface.VecSignPrvKeys_erase(self, *args)
+
+    def __init__(self, *args):
+        _di_zkp_interface.VecSignPrvKeys_swiginit(self, _di_zkp_interface.new_VecSignPrvKeys(*args))
+
+    def push_back(self, x):
+        return _di_zkp_interface.VecSignPrvKeys_push_back(self, x)
+
+    def front(self):
+        return _di_zkp_interface.VecSignPrvKeys_front(self)
+
+    def back(self):
+        return _di_zkp_interface.VecSignPrvKeys_back(self)
+
+    def assign(self, n, x):
+        return _di_zkp_interface.VecSignPrvKeys_assign(self, n, x)
+
+    def resize(self, *args):
+        return _di_zkp_interface.VecSignPrvKeys_resize(self, *args)
+
+    def insert(self, *args):
+        return _di_zkp_interface.VecSignPrvKeys_insert(self, *args)
+
+    def reserve(self, n):
+        return _di_zkp_interface.VecSignPrvKeys_reserve(self, n)
+
+    def capacity(self):
+        return _di_zkp_interface.VecSignPrvKeys_capacity(self)
+    __swig_destroy__ = _di_zkp_interface.delete_VecSignPrvKeys
+
+# Register VecSignPrvKeys in _di_zkp_interface:
+_di_zkp_interface.VecSignPrvKeys_swigregister(VecSignPrvKeys)
+
 
 
